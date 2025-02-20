@@ -1,7 +1,7 @@
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { Progress } from "../ui/progress";
-import { Badge } from "../ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 import {
   Users,
   Home,
@@ -18,7 +18,7 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "../ui/tooltip";
+} from "@/components/ui/tooltip";
 
 const AboutSection = () => {
   const features = [
@@ -26,150 +26,196 @@ const AboutSection = () => {
       name: "จัดการสมาชิก",
       icon: Users,
       description: "ระบบจัดการข้อมูลสมาชิกแบบครบวงจร",
+      color: "from-violet-500 to-purple-500",
     },
     {
       name: "จัดการห้องประชุม",
       icon: Home,
       description: "จองห้องประชุมและจัดการทรัพยากร",
+      color: "from-blue-500 to-cyan-500",
     },
     {
       name: "จัดการการเข้าถึง",
       icon: Shield,
       description: "ควบคุมความปลอดภัยและการเข้าถึง",
+      color: "from-green-500 to-emerald-500",
     },
     {
       name: "จัดการล็อคสมาชิก",
       icon: UserX,
       description: "ระงับและจัดการสิทธิ์ผู้ใช้",
+      color: "from-rose-500 to-pink-500",
     },
     {
       name: "รายงานและสถิติ",
       icon: BarChart3,
       description: "วิเคราะห์ข้อมูลและออกรายงาน",
+      color: "from-amber-500 to-orange-500",
     },
     {
       name: "รับเรื่องติดต่อ",
       icon: MessageCircle,
       description: "รับเรื่องจากการติดต่อสมาชิกที่ต้องการจะปลดล็อค",
+      color: "from-indigo-500 to-blue-500",
     },
     {
       name: "จัดการสิทธิ์การใช้งาน",
       icon: Lock,
       description: "กำหนดระดับการเข้าถึงระบบ",
+      color: "from-fuchsia-500 to-pink-500",
     },
   ];
 
-  // Variants for animation
   const containerVariants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      y: 0,
-      transition: { duration: 0.6, staggerChildren: 0.2 },
+      transition: { staggerChildren: 0.1, delayChildren: 0.3 },
     },
   };
 
   const itemVariants = {
-    hidden: (i) => ({ opacity: 0, x: i % 2 === 0 ? -30 : 30 }), // Left for even, right for odd
-    visible: { opacity: 1, x: 0, transition: { type: "spring", damping: 15 } },
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+        damping: 12,
+      },
+    },
   };
 
   return (
-    <div>
-      <TooltipProvider>
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={containerVariants}
-          className="max-w-3xl mx-auto overflow-hidden shadow-2xl rounded-2xl"
-        >
-          <Card className="overflow-hidden rounded-2xl">
-            <CardHeader className="bg-gradient-to-r from-blue-700 to-purple-700 p-8">
-              <motion.div
-                variants={itemVariants}
-                custom={0}
-                className="flex items-center justify-between"
-              >
+    <div className="min-h-screen w-full py-12 px-4 sm:px-6 lg:px-8">
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="max-w-7xl mx-auto"
+      >
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Info Card */}
+          <motion.div variants={itemVariants} className="lg:col-span-2">
+            <Card className="h-full">
+              <CardHeader className="space-y-6 p-8">
+                <div className="flex items-center justify-between">
+                  <Badge variant="outline" className="bg-violet-50 text-violet-700 border-violet-200">
+                    Version 1.0
+                  </Badge>
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.5 }}
+                  >
+                    <Badge className="bg-gradient-to-r from-violet-600 to-indigo-600">
+                      Full Release
+                    </Badge>
+                  </motion.div>
+                </div>
                 <div>
-                  <CardTitle className="text-2xl font-bold text-white mb-2">
-                    ระบบจัดการ MUT Reserve
+                  <CardTitle className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-600 to-indigo-600">
+                    MUT Reserve DashBoard
                   </CardTitle>
-                  <p className="text-blue-100">
-                    ระบบจัดการการจองห้องประชุมและทรัพยากรแบบครบวงจร
+                  <p className="mt-2 text-gray-600">
+                    ระบบจัดการการจองห้องประชุมและทรัพยากรแบบครบวงจร พร้อมฟีเจอร์ที่ครอบคลุมทุกการใช้งาน
                   </p>
                 </div>
-                <Badge variant="secondary" className="bg-white/10 text-white">
-                  Version 1 Full
-                </Badge>
-              </motion.div>
-            </CardHeader>
-            <CardContent className="p-8 space-y-6">
-              <motion.div
-                variants={itemVariants}
-                custom={1}
-                className="grid grid-cols-1 lg:grid-cols-2 gap-6"
-              >
-                <div className="space-y-4">
-                  <div className="space-y-3">
-                    <h2 className="text-xl font-semibold text-gray-800">
-                      DashBoard Admin Advance
-                    </h2>
-                    <p className="text-sm text-gray-600">
-                      ระบบจัดการข้อมูล Backend ที่ครอบคลุมทุกการใช้งาน
-                    </p>
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium text-gray-700">
-                          ความคืบหน้าการพัฒนา
-                        </span>
-                        <span className="text-sm text-blue-600 font-semibold">
-                          100%
-                        </span>
-                      </div>
-                      <Progress value={100} className="h-2 bg-gray-100" />
-                    </div>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-gray-700">ความคืบหน้าการพัฒนา</span>
+                    <span className="text-sm font-semibold text-violet-600">100%</span>
                   </div>
+                  <Progress value={100} className="h-2" />
+                </div>
+              </CardHeader>
+              <CardContent className="p-8 pt-0">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <motion.div
                     variants={itemVariants}
-                    custom={2}
-                    className="bg-gray-50 p-4 rounded-lg border border-gray-100"
+                    className="rounded-xl border border-gray-100 p-6 bg-gradient-to-br from-violet-50/50 to-indigo-50/50"
                   >
-                    <h3 className="text-sm font-medium text-gray-700 mb-3">
-                      ข้อมูลการติดต่อ
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                      ทีมพัฒนา
                     </h3>
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-2 text-sm text-gray-600">
-                        <Users className="w-4 h-4 text-blue-500" />
-                        <span>ทีมพัฒนาซอฟต์แวร์ Team Avenger EIEI</span>
+                    <div className="space-y-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="p-2 bg-violet-100 rounded-lg">
+                          <Users className="w-5 h-5 text-violet-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">Team Avenger EIEI</p>
+                          <p className="text-xs text-gray-500">Software Development Team</p>
+                        </div>
                       </div>
-                      <div className="flex items-center space-x-2 text-sm text-gray-600">
-                        <Mail className="w-4 h-4 text-blue-500" />
-                        <span>support@teamgameover.com</span>
+                      <div className="flex items-center space-x-3">
+                        <div className="p-2 bg-violet-100 rounded-lg">
+                          <Mail className="w-5 h-5 text-violet-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">support@teamgameover.com</p>
+                          <p className="text-xs text-gray-500">Contact Email</p>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                  <motion.div
+                    variants={itemVariants}
+                    className="rounded-xl border border-gray-100 p-6 bg-gradient-to-br from-indigo-50/50 to-violet-50/50"
+                  >
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                      สถานะระบบ
+                    </h3>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 rounded-full bg-green-500" />
+                          <span className="text-sm text-gray-600">ระบบพร้อมใช้งาน</span>
+                        </div>
+                        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                          Active
+                        </Badge>
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        Last updated: {new Date().toLocaleDateString()}
                       </div>
                     </div>
                   </motion.div>
                 </div>
-                <motion.div variants={containerVariants} className="space-y-3">
-                  <h3 className="text-xl font-semibold text-gray-800 mb-4">
-                    ฟีเจอร์หลัก
-                  </h3>
-                  <div className="grid grid-cols-1 gap-3">
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Features Grid */}
+          <motion.div variants={itemVariants} className="lg:col-span-1">
+            <Card className="h-full">
+              <CardHeader className="p-6">
+                <CardTitle className="text-xl font-semibold text-gray-900">
+                  ฟีเจอร์หลัก
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 pt-0">
+                <TooltipProvider>
+                  <div className="space-y-3">
                     {features.map((feature, index) => (
                       <Tooltip key={index}>
                         <TooltipTrigger asChild>
                           <motion.div
-                            custom={index}
                             variants={itemVariants}
-                            whileHover={{ scale: 1.03 }}
-                            className="p-3 rounded-lg bg-white shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100"
+                            whileHover={{ scale: 1.02 }}
+                            className="group relative p-4 rounded-lg border border-gray-100 bg-white hover:shadow-lg transition-all duration-300"
                           >
-                            <div className="flex items-center space-x-3">
-                              <feature.icon className="w-5 h-5 text-blue-500" />
+                            <div className="absolute inset-0 bg-gradient-to-r opacity-0 group-hover:opacity-10 rounded-lg transition-opacity duration-300 ${feature.color}" />
+                            <div className="flex items-center space-x-4">
+                              <div className={`p-2 rounded-lg bg-gradient-to-r ${feature.color}`}>
+                                <feature.icon className="w-4 h-4 text-white" />
+                              </div>
                               <div>
-                                <h4 className="text-sm font-medium text-gray-800">
+                                <h4 className="text-sm font-medium text-gray-900">
                                   {feature.name}
                                 </h4>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-gray-500 mt-0.5">
                                   {feature.description}
                                 </p>
                               </div>
@@ -182,21 +228,20 @@ const AboutSection = () => {
                       </Tooltip>
                     ))}
                   </div>
-                </motion.div>
-              </motion.div>
-              <motion.div
-                variants={itemVariants}
-                custom={3}
-                className="pt-4 border-t border-gray-100"
-              >
-                <p className="text-xs text-center text-gray-500">
-                  © 2024 MUT Reserve. All rights reserved.
-                </p>
-              </motion.div>
-            </CardContent>
-          </Card>
+                </TooltipProvider>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+
+        {/* Footer */}
+        <motion.div
+          variants={itemVariants}
+          className="mt-8 text-center text-sm text-gray-500"
+        >
+          © 2024 MUT Reserve. All rights reserved.
         </motion.div>
-      </TooltipProvider>
+      </motion.div>
     </div>
   );
 };

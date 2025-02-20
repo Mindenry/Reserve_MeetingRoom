@@ -20,53 +20,39 @@ import {
   AreaChart,
 } from "recharts";
 import { Card } from "@/components/ui/card";
-
 const API_URL = "http://localhost:8080";
-
 const fetchRoomStats = async () => {
   const [roomResponse, memberResponse, bookingResponse] = await Promise.all([
     axios.get(`${API_URL}/room`),
     axios.get(`${API_URL}/members`),
     axios.get(`${API_URL}/admin-bookings`),
   ]);
-
   const rooms = roomResponse.data;
   const members = memberResponse.data;
   const bookings = bookingResponse.data;
-
   const activeBookings = rooms.filter((room) => room.STUROOM !== 1).length;
   const totalRooms = rooms.length;
   const availableRooms = totalRooms - activeBookings;
-
-  // คำนวณอัตราการใช้งานที่แท้จริงจากการจองที่เสร็จสมบูรณ์
   const totalBookings = bookings.length;
   const completedBookings = bookings.filter(
     (booking) => booking.STUBOOKING === 3
   ).length;
-  // คำนวณอัตราการใช้งาน
   const utilizationRate =
-    totalBookings > 0 ? (completedBookings / totalBookings) * 100 : 0; // คำนวณเป็นเปอร์เซ็นต์
-
+    totalBookings > 0 ? (completedBookings / totalBookings) * 100 : 0;
   return {
     totalRooms,
     totalMembers: members.length,
     availableRooms,
-    utilizationRate: Math.round(utilizationRate * 10) / 10, // ปัดเศษอัตราการใช้งาน
+    utilizationRate: Math.round(utilizationRate * 10) / 10,
   };
 };
-
-// ฟังก์ชันสำหรับดึงประวัติการจอง
 const fetchBookingHistory = async () => {
   const response = await axios.get(`${API_URL}/history`);
-
-  // ประมวลผลข้อมูลให้เป็นรูปแบบที่ต้องการ
   const processedData = response.data.reduce((acc, booking) => {
     const date = new Date(booking.BDATE).toLocaleDateString();
     acc[date] = (acc[date] || 0) + 1;
     return acc;
   }, {});
-
-  // แปลงข้อมูลกลับเป็นอาร์เรย์และเรียงลำดับตามวันที่
   return Object.entries(processedData)
     .map(([date, count]) => ({
       BDATE: date,
@@ -74,55 +60,48 @@ const fetchBookingHistory = async () => {
     }))
     .sort((a, b) => new Date(a.BDATE) - new Date(b.BDATE));
 };
-
 const StatCard = ({ title, value, icon: Icon, index }) => (
   <motion.div
     initial={{ opacity: 0, y: 50 }}
     animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.5, delay: index * 0.1 }}
-    whileHover={{ scale: 1.02, y: -5 }}
+    transition={{ duration: 0.6, delay: index * 0.1 }}
+    whileHover={{ scale: 1.03, y: -5 }}
   >
-    <Card className="transition-all duration-500 hover:shadow-2xl bg-gradient-to-br from-white via-white to-purple-50/30 group relative overflow-hidden border-0 backdrop-blur-xl">
-      <motion.div
-        className="absolute inset-0 bg-gradient-to-r from-blue-500/0 to-purple-500/5"
-        initial={{ opacity: 0 }}
-        whileHover={{ opacity: 1 }}
-        transition={{ duration: 0.3 }}
-      />
-      <motion.div
-        className="absolute -right-10 -top-10 w-24 h-24 blur-3xl bg-blue-500/10"
-        whileHover={{ scale: 1.5, backgroundColor: "rgba(147, 51, 234, 0.2)" }}
-        transition={{ duration: 0.5 }}
-      />
-      <div className="flex flex-row items-center justify-between space-y-0 pb-2 p-8">
+    <Card className="relative overflow-hidden rounded-2xl border border-white/20 shadow-xl bg-gradient-to-br from-white/90 to-white/70 backdrop-blur-xl p-1">
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5" />
+      <div className="relative p-6">
+        <div className="flex items-center justify-between mb-4">
+          <motion.div
+            initial={{ x: -20, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="flex items-center space-x-3"
+          >
+            <motion.div
+              whileHover={{ rotate: 5, scale: 1.1 }}
+              className="p-3 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg"
+            >
+              <Icon className="h-6 w-6 text-white" />
+            </motion.div>
+            <h3 className="text-lg font-medium text-gray-700">{title}</h3>
+          </motion.div>
+        </div>
         <motion.div
-          className="text-base font-medium text-muted-foreground"
-          whileHover={{ color: "#2563eb" }}
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="relative"
         >
-          {title}
-        </motion.div>
-        <motion.div
-          className="h-14 w-14 rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 p-3 shadow-lg"
-          whileHover={{ scale: 1.1, rotate: 5 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <Icon className="h-8 w-8 text-white" />
+          <div className="text-4xl font-bold bg-gradient-to-br from-blue-600 to-purple-700 bg-clip-text text-transparent">
+            {value}
+          </div>
         </motion.div>
       </div>
-      <motion.div
-        className="px-8 pb-8"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.2 }}
-      >
-        <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-          {value}
-        </div>
-      </motion.div>
+      <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-blue-500/10 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-24 h-24 bg-purple-500/10 rounded-full blur-3xl" />
     </Card>
   </motion.div>
 );
-
 const HomeSection = () => {
   const {
     data: currentStats = {
@@ -137,139 +116,151 @@ const HomeSection = () => {
     queryFn: fetchRoomStats,
     refetchInterval: 30000,
   });
-
   const { data: bookingHistory = [], isLoading: isLoadingHistory } = useQuery({
     queryKey: ["bookingHistory"],
     queryFn: fetchBookingHistory,
   });
-
   if (isLoadingStats || isLoadingHistory) {
     return (
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50/30"
+        className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50"
       >
-        <motion.div
-          className="text-center"
-          animate={{
-            scale: [1, 1.1, 1],
-          }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-          }}
-        >
-          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-purple-600 mx-auto"></div>
-          <p className="mt-6 text-lg text-purple-900/70 font-medium">
+        <div className="text-center space-y-6">
+          <motion.div
+            animate={{
+              scale: [1, 1.2, 1],
+              rotate: [0, 360],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+            className="w-16 h-16 mx-auto"
+          >
+            <div className="w-full h-full rounded-full border-4 border-purple-500/30 border-t-purple-600 animate-spin" />
+          </motion.div>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="text-lg text-purple-900/70 font-medium"
+          >
             กำลังโหลดข้อมูล...
-          </p>
-        </motion.div>
+          </motion.p>
+        </div>
       </motion.div>
     );
   }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-purple-50/30">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50/50 to-purple-50/50">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 1 }}
-        className="relative bg-gradient-to-r from-blue-600 to-purple-600 text-white py-40 px-4 overflow-hidden"
+        className="relative bg-gradient-to-br from-blue-600 to-purple-700 text-white py-48 px-4 overflow-hidden"
       >
         <motion.div
           animate={{
             scale: [1, 1.2, 1],
-            opacity: [0.1, 0.2, 0.1],
+            opacity: [0.3, 0.4, 0.3],
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            repeatType: "reverse",
+          }}
+          className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1605810230434-7631ac76ec81')] bg-cover bg-center opacity-30"
+          style={{ filter: 'saturate(0.8) brightness(0.8)' }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-700/80 to-purple-800/80 backdrop-blur-sm" />
+        
+        <motion.div
+          animate={{
+            scale: [1, 1.3, 1],
+            opacity: [0.2, 0.3, 0.2],
           }}
           transition={{
             duration: 5,
             repeat: Infinity,
             repeatType: "reverse",
           }}
-          className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1605810230434-7631ac76ec81')] bg-cover bg-center mix-blend-overlay"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-blue-600/50 to-purple-600/80" />
-        <motion.div
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.2, 0.3, 0.2],
-          }}
-          transition={{
-            duration: 3,
-            repeat: Infinity,
-            repeatType: "reverse",
-          }}
-          className="absolute -top-24 -right-24 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl"
+          className="absolute top-0 right-0 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl"
         />
         <motion.div
           animate={{
-            scale: [1, 1.2, 1],
+            scale: [1, 1.3, 1],
             opacity: [0.2, 0.3, 0.2],
           }}
           transition={{
-            duration: 4,
+            duration: 7,
             delay: 1,
             repeat: Infinity,
             repeatType: "reverse",
           }}
-          className="absolute -bottom-24 -left-24 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl"
+          className="absolute bottom-0 left-0 w-96 h-96 bg-purple-400/20 rounded-full blur-3xl"
         />
-        <motion.div
-          initial={{ y: 50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.8 }}
-          className="container mx-auto max-w-6xl relative z-10"
-        >
+        <div className="container mx-auto max-w-6xl relative z-10">
           <motion.div
-            initial={{ x: -50, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="flex items-center gap-3 mb-8"
+            initial={{ y: 50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.8 }}
+            className="space-y-8"
           >
             <motion.div
-              animate={{
-                rotate: [0, 360],
-                scale: [1, 1.2, 1],
-              }}
-              transition={{
-                duration: 3,
-                repeat: Infinity,
-                repeatType: "reverse",
-              }}
+              initial={{ x: -50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="flex items-center gap-4"
             >
-              <Sparkles className="h-8 w-8 text-blue-200" />
+              <motion.div
+                animate={{
+                  rotate: [0, 360],
+                  scale: [1, 1.2, 1],
+                }}
+                transition={{
+                  duration: 4,
+                  repeat: Infinity,
+                  repeatType: "reverse",
+                }}
+                className="p-3 rounded-full bg-white/10 backdrop-blur-lg"
+              >
+                <Sparkles className="h-6 w-6 text-blue-200" />
+              </motion.div>
+              <h2 className="text-xl font-medium text-blue-100">ระบบจัดการห้องประชุม</h2>
             </motion.div>
-            <h2 className="text-xl font-light text-blue-200">
-              ระบบจัดการห้องประชุม
-            </h2>
+            
+            <motion.h1
+              initial={{ x: -50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="text-7xl font-bold tracking-tight"
+            >
+              <span className="bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-transparent">
+                MUT Reserve
+              </span>
+            </motion.h1>
+            
+            <motion.p
+              initial={{ x: -50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+              className="text-3xl text-blue-100/90 max-w-3xl font-light leading-relaxed"
+            >
+              ระบบจองห้องประชุมออนไลน์ มหาวิทยาลัยเทคโนโลยีมหานคร
+            </motion.p>
           </motion.div>
-          <motion.h1
-            initial={{ x: -50, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="text-6xl md:text-7xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-blue-100 tracking-tight"
-          >
-            MUT Reserve
-          </motion.h1>
-          <motion.p
-            initial={{ x: -50, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-            className="text-2xl md:text-3xl mb-12 text-blue-100 max-w-3xl font-light leading-relaxed"
-          >
-            ระบบจองห้องประชุมออนไลน์ มหาวิทยาลัยเทคโนโลยีมหานคร
-          </motion.p>
-        </motion.div>
+        </div>
       </motion.div>
-      <div className="container mx-auto max-w-6xl px-4 -mt-20">
+      <div className="container mx-auto max-w-6xl px-4 -mt-24 relative z-20">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-12">
-            <StatCard
-              title="ห้องประชุมทั้งหมด"
-              value={currentStats.totalRooms}
-              icon={Building2}
-              index={0}
-            />
+          <StatCard
+            title="ห้องประชุมทั้งหมด"
+            value={currentStats.totalRooms}
+            icon={Building2}
+            index={0}
+          />
           <StatCard
             title="จำนวนสมาชิก"
             value={currentStats.totalMembers}
@@ -293,71 +284,70 @@ const HomeSection = () => {
           initial={{ y: 50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.8 }}
-          className="bg-white/80 backdrop-blur-xl rounded-3xl p-10 shadow-xl mb-12 border border-white/20 relative overflow-hidden group"
+          className="relative overflow-hidden rounded-3xl backdrop-blur-xl bg-white/80 p-8 shadow-xl border border-white/20"
         >
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileHover={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-            className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-purple-500/5 to-blue-500/0"
-          />
-          <div className="flex items-center gap-3 mb-8">
-            <motion.div
-              animate={{
-                rotate: [0, 360],
-              }}
-              transition={{
-                duration: 20,
-                repeat: Infinity,
-                ease: "linear",
-              }}
-            >
-              <BarChart3 className="h-6 w-6 text-blue-600" />
-            </motion.div>
-            <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              สถิติการจอง
-            </h2>
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5" />
+          <div className="relative">
+            <div className="flex items-center gap-4 mb-8">
+              <motion.div
+                animate={{
+                  rotate: [0, 360],
+                }}
+                transition={{
+                  duration: 20,
+                  repeat: Infinity,
+                  ease: "linear",
+                }}
+                className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600"
+              >
+                <BarChart3 className="h-6 w-6 text-white" />
+              </motion.div>
+              <h2 className="text-3xl font-bold bg-gradient-to-br from-blue-600 to-purple-700 bg-clip-text text-transparent">
+                สถิติการจอง
+              </h2>
+            </div>
+            <div className="h-[400px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={bookingHistory}>
+                  <defs>
+                    <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis
+                    dataKey="BDATE"
+                    stroke="#64748b"
+                    tick={{ fill: "#64748b" }}
+                  />
+                  <YAxis stroke="#64748b" tick={{ fill: "#64748b" }} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "rgba(255, 255, 255, 0.95)",
+                      backdropFilter: "blur(8px)",
+                      border: "1px solid rgba(255, 255, 255, 0.2)",
+                      borderRadius: "16px",
+                      boxShadow: "0 8px 32px -4px rgb(0 0 0 / 0.1)",
+                      padding: "12px 16px",
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="count"
+                    stroke="#6366f1"
+                    strokeWidth={3}
+                    fill="url(#colorCount)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
           </div>
-          <div className="h-[400px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={bookingHistory}>
-                <defs>
-                  <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis
-                  dataKey="BDATE"
-                  stroke="#64748b"
-                  tick={{ fill: "#64748b" }}
-                />
-                <YAxis stroke="#64748b" tick={{ fill: "#64748b" }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "rgba(255, 255, 255, 0.9)",
-                    backdropFilter: "blur(8px)",
-                    border: "none",
-                    borderRadius: "12px",
-                    boxShadow: "0 8px 32px -4px rgb(0 0 0 / 0.1)",
-                    padding: "12px 16px",
-                  }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="count"
-                  stroke="#3b82f6"
-                  strokeWidth={3}
-                  fill="url(#colorCount)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+          <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl" />
         </motion.div>
       </div>
     </div>
   );
 };
-
 export default HomeSection;
