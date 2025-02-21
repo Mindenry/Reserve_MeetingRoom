@@ -2,30 +2,18 @@ import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import axios from "axios";
-import {
-  CalendarIcon, Clock, Building, Layers, DoorOpen,
-  Users, Home, Check
-} from "lucide-react";
+import { CalendarIcon, Clock, Building, Layers, DoorOpen, Users, Home, Check } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select, SelectContent, SelectItem,
-  SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-import {
-  Form, FormControl, FormField,
-  FormItem, FormLabel, FormMessage,
-} from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, addDays } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 const API_URL = "http://localhost:8080";
 const containerVariants = {
@@ -66,7 +54,10 @@ const BookingSection = () => {
   const [selectedFloor, setSelectedFloor] = useState("");
   const [participants, setParticipants] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showReceiptDialog, setShowReceiptDialog] = useState(false);
   const { user } = useAuth();
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [bookingDetails, setBookingDetails] = useState(null);
   const form = useForm({
     defaultValues: {
       roomType: "",
@@ -183,40 +174,70 @@ const BookingSection = () => {
       toast.error("กรุณาเข้าสู่ระบบก่อนทำการจอง");
       return false;
     }
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selectedDate = new Date(data.date);
+    const minimumBookingDate = addDays(today, 1);
+    if (selectedDate < minimumBookingDate) {
+      toast.error("กรุณาจองล่วงหน้าอย่างน้อย 1 วัน");
+      return false;
+    }
     if (!data.date || !data.startTime || !data.endTime) {
       toast.error("กรุณากรอกข้อมูลวันและเวลาให้ครบถ้วน");
       return false;
     }
+    
     if (!data.participants || parseInt(data.participants) <= 0) {
       toast.error("กรุณาระบุจำนวนผู้เข้าร่วมที่ถูกต้อง");
       return false;
     }
+    
     if (!data.roomType || !data.building || !data.floor || !data.room) {
       toast.error("กรุณาเลือกห้องประชุมให้ครบถ้วน");
       return false;
     }
     return true;
   };
-  const onSubmit = async (data) => {
+  const handleSubmit = (data) => {
     if (!validateBookingData(data)) return;
+    
+    const bookingDate = new Date(data.date);
+    const startDateTime = new Date(bookingDate);
+    const [startHours, startMinutes] = data.startTime.split(":");
+    startDateTime.setHours(parseInt(startHours, 10), parseInt(startMinutes, 10));
+    
+    const endDateTime = new Date(bookingDate);
+    const [endHours, endMinutes] = data.endTime.split(":");
+    endDateTime.setHours(parseInt(endHours, 10), parseInt(endMinutes, 10));
+    if (startDateTime >= endDateTime) {
+      toast.error("เวลาเริ่มต้นต้องน้อยกว่าเวลาสิ้นสุด");
+      return;
+    }
+    const roomDetails = rooms.find(room => room.CFRNUMBER.toString() === data.room);
+    const buildingDetails = buildings.find(building => building.BDNUMBER.toString() === data.building);
+    const floorDetails = floors.find(floor => floor.FLNUMBER.toString() === data.floor);
+    setBookingDetails({
+      date: format(bookingDate, "PPP"),
+      startTime: data.startTime,
+      endTime: data.endTime,
+      roomName: roomDetails?.CFRNAME || data.room,
+      buildingName: buildingDetails?.BDNAME || data.building,
+      floorName: floorDetails?.FLNAME || data.floor,
+      participants: data.participants
+    });
+    setShowConfirmDialog(true);
+  };
+  const onSubmit = async (data) => {
     try {
       setIsSubmitting(true);
-      const bookingDate = new Date(data.date);
-      const startDateTime = new Date(bookingDate);
-      const [startHours, startMinutes] = data.startTime.split(":");
-      startDateTime.setHours(parseInt(startHours, 10), parseInt(startMinutes, 10));
+      setShowConfirmDialog(false);
       
-      const endDateTime = new Date(bookingDate);
-      const [endHours, endMinutes] = data.endTime.split(":");
-      endDateTime.setHours(parseInt(endHours, 10), parseInt(endMinutes, 10));
-      if (startDateTime >= endDateTime) {
-        toast.error("เวลาเริ่มต้นต้องน้อยกว่าเวลาสิ้นสุด");
-        return;
-      }
+      const bookingDate = new Date(data.date);
       const bookingData = {
         date: format(bookingDate, "yyyy-MM-dd"),
-        startTime: format(startDateTime, "HH:mm"),
-        endTime: format(endDateTime, "HH:mm"),
+        startTime: data.startTime,
+        endTime: data.endTime,
         room: data.room,
         essn: user.ssn,
         participants: parseInt(data.participants),
@@ -228,6 +249,8 @@ const BookingSection = () => {
           toast.info("การจองห้อง VIP อยู่ระหว่างรอการอนุมัติ");
         } else {
           toast.success("การจองสำเร็จ!");
+          // Show receipt dialog after successful booking
+          setShowReceiptDialog(true);
         }
         form.reset();
         setFormProgress({
@@ -251,6 +274,7 @@ const BookingSection = () => {
       setIsSubmitting(false);
     }
   };
+  
   return (
     <div className="min-h-screen py-8 px-4">
       <motion.div initial="hidden" animate="visible" variants={containerVariants} className="max-w-4xl mx-auto">
@@ -269,6 +293,7 @@ const BookingSection = () => {
             จองห้องประชุม
           </h1>
         </motion.div>
+        
         <Card className="overflow-hidden shadow-xl rounded-xl border-0">
           <CardHeader className="relative z-10 border-b border-gray-100">
             <CardTitle className="text-xl font-bold text-gray-800">
@@ -277,7 +302,7 @@ const BookingSection = () => {
           </CardHeader>
           <CardContent className="p-6 relative z-10">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
                 <motion.div variants={containerVariants} className="grid grid-cols-4 gap-2 mb-6">
                   {[
                     { label: 'วันและเวลา', completed: formProgress.dateTime },
@@ -321,7 +346,7 @@ const BookingSection = () => {
                                 mode="single"
                                 selected={field.value}
                                 onSelect={field.onChange}
-                                disabled={(date) => date < new Date() || date < new Date("1900-01-01")}
+                                disabled={(date) => date < addDays(new Date(), 1) || date < new Date("1900-01-01")}
                                 initialFocus
                               />
                             </PopoverContent>
@@ -574,6 +599,65 @@ const BookingSection = () => {
             </Form>
           </CardContent>
         </Card>
+        <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle className="text-center text-xl font-semibold mb-4">ยืนยันการจองห้องประชุม</DialogTitle>
+              <DialogDescription className="text-center">
+                <DoorOpen className="w-12 h-12 mx-auto mb-4 text-blue-600" />
+              </DialogDescription>
+            </DialogHeader>
+            {bookingDetails && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="space-y-2">
+                    <p className="text-gray-600">วันที่</p>
+                    <p className="font-medium">{bookingDetails.date}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-gray-600">เวลา</p>
+                    <p className="font-medium">{bookingDetails.startTime} - {bookingDetails.endTime}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-gray-600">ห้อง</p>
+                    <p className="font-medium">{bookingDetails.roomName}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-gray-600">จำนวนผู้เข้าร่วม</p>
+                    <p className="font-medium">{bookingDetails.participants} คน</p>
+                  </div>
+                  <div className="col-span-2 space-y-2">
+                    <p className="text-gray-600">สถานที่</p>
+                    <p className="font-medium">
+                      {bookingDetails.buildingName} ชั้น {bookingDetails.floorName}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+            <DialogFooter className="flex gap-2 mt-6">
+              <Button
+                variant="outline"
+                onClick={() => setShowConfirmDialog(false)}
+                className="flex-1"
+              >
+                ยกเลิก
+              </Button>
+              <Button
+                type="button"
+                onClick={() => onSubmit(form.getValues())}
+                disabled={isSubmitting}
+                className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700"
+              >
+                {isSubmitting ? (
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+                ) : (
+                  "ยืนยันการจอง"
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </motion.div>
     </div>
   );

@@ -1,53 +1,52 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Plus,
-  Search,
-  MoreVertical,
-  Info,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { Plus, Search, MoreVertical, Info, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth } from "@/contexts/AuthContext";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
 import axios from "axios";
 
 const ITEMS_PER_PAGE = 10;
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.4,
+      ease: "easeOut"
+    }
+  }
+};
+
 const AccessSection = () => {
   const [accessRecords, setAccessRecords] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [cancelReason, setCancelReason] = useState("");
   const [showCancelReason, setShowCancelReason] = useState(false);
   const [selectedCancelDetails, setSelectedCancelDetails] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const { user } = useAuth();
+  const [user, setUser] = useState(null);
+
   const statusMap = {
     1: "จองสำเร็จ",
     2: "ไม่มีการเข้าใช้ห้อง",
@@ -55,6 +54,7 @@ const AccessSection = () => {
     4: "รออนุมัติ",
     5: "ยกเลิกการจอง",
   };
+
   const statusColors = {
     1: "bg-green-100 text-green-800",
     2: "bg-gray-100 text-gray-800",
@@ -62,9 +62,9 @@ const AccessSection = () => {
     4: "bg-yellow-100 text-yellow-800",
     5: "bg-red-100 text-red-800",
   };
+
   useEffect(() => {
     fetchAccessRecords();
-
     const statusCheckInterval = setInterval(async () => {
       try {
         await axios.post("http://localhost:8080/check-room-status");
@@ -73,15 +73,13 @@ const AccessSection = () => {
         console.error("Error checking room status:", error);
       }
     }, 60000);
-    return () => clearInterval(statusCheckInterval); // ล้างการตั้งเวลาเมื่อส่วนประกอบถูกลบ
-  }, []); // พึ่งพา empty array เพื่อทำงานเพียงครั้งเดียว
+    return () => clearInterval(statusCheckInterval);
+  }, []);
 
   const fetchAccessRecords = async () => {
     try {
       const response = await fetch("http://localhost:8080/admin-bookings");
-      if (!response.ok) {
-        throw new Error("Error fetching access records");
-      }
+      if (!response.ok) throw new Error("Error fetching access records");
       const data = await response.json();
       setAccessRecords(data);
     } catch (error) {
@@ -90,19 +88,12 @@ const AccessSection = () => {
     }
   };
 
-  // ฟังก์ชันเพื่อแสดงเหตุผลการยกเลิก
   const handleShowCancelReason = async (booking) => {
     try {
-      const response = await fetch(
-        `http://localhost:8080/cancel-reason/${booking.RESERVERID}`
-      );
-      if (!response.ok) {
-        throw new Error("Failed to fetch cancel details");
-      }
+      const response = await fetch(`http://localhost:8080/cancel-reason/${booking.RESERVERID}`);
+      if (!response.ok) throw new Error("Failed to fetch cancel details");
       const data = await response.json();
-      if (!data.success) {
-        throw new Error(data.error || "Failed to fetch cancel details");
-      }
+      if (!data.success) throw new Error(data.error || "Failed to fetch cancel details");
       setSelectedCancelDetails({
         reason: data.reason || "ไม่พบข้อมูลเหตุผลการยกเลิก",
       });
@@ -113,14 +104,12 @@ const AccessSection = () => {
     }
   };
 
-  // ฟังก์ชันเมื่อคลิกที่การยกเลิกการจอง
   const handleCancelClick = (booking) => {
-    setSelectedBooking(booking); // ตั้งค่าการจองที่เลือก
-    setCancelReason(""); // รีเซ็ตเหตุผลการยกเลิก
+    setSelectedBooking(booking);
+    setCancelReason("");
     setCancelDialogOpen(true);
   };
 
-  // ฟังก์ชันเพื่อดำเนินการยกเลิกการจอง
   const handleCancelBooking = async () => {
     if (!cancelReason.trim()) {
       toast.error("กรุณาระบุเหตุผลในการยกเลิก");
@@ -131,18 +120,14 @@ const AccessSection = () => {
         `http://localhost:8080/cancel/${selectedBooking.RESERVERID}/${selectedBooking.CFRNUM}`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            reason: cancelReason, // ส่งเหตุผลการยกเลิก
-            empId: user?.ssn || "", // ส่ง ID ของผู้ใช้
+            reason: cancelReason,
+            empId: user?.ssn || "",
           }),
         }
       );
-      if (!response.ok) {
-        throw new Error("Failed to cancel booking");
-      }
+      if (!response.ok) throw new Error("Failed to cancel booking");
       const data = await response.json();
       if (data.success) {
         toast.success("ยกเลิกการจองเรียบร้อยแล้ว");
@@ -157,121 +142,29 @@ const AccessSection = () => {
     }
   };
 
-  // สถานะสำหรับกล่องโต้ตอบการอนุมัติ
-  const [approveDialogOpen, setApproveDialogOpen] = useState(false);
-  // สถานะสำหรับการจองที่ต้องการอนุมัติ
-  const [bookingToApprove, setBookingToApprove] = useState(null);
-  // ฟังก์ชันเมื่อคลิกที่การอนุมัติการจอง
   const handleApproveClick = (booking) => {
     setBookingToApprove(booking);
     setApproveDialogOpen(true);
   };
 
-  // ฟังก์ชันเพื่อดำเนินการอนุมัติการจอง
   const handleApproveBooking = async () => {
     try {
       const response = await fetch(
         `http://localhost:8080/approve/${bookingToApprove.RESERVERID}/${bookingToApprove.CFRNUM}`,
-        { method: "POST" } 
+        { method: "POST" }
       );
       if (!response.ok) throw new Error("Failed to approve booking");
       const data = await response.json();
       if (data.success) {
         setApproveDialogOpen(false);
         await fetchAccessRecords();
-        toast.success(
-          <div className="flex items-start space-x-4 p-2">
-            <div className="flex-shrink-0 bg-green-100 rounded-full p-2">
-              <svg
-                className="w-6 h-6 text-green-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </div>
-            <div className="flex-1 flex flex-col gap-1">
-              <div className="font-semibold text-green-800 text-base">
-                อนุมัติการจองสำเร็จ
-              </div>
-              <div className="space-y-1">
-                <div className="flex items-center text-sm text-gray-600">
-                  <svg
-                    className="w-4 h-4 mr-2 text-green-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"
-                    />
-                  </svg>
-                  <span>รหัสการจอง: </span>
-                  <span className="ml-1 font-medium text-green-700">
-                    {bookingToApprove?.RESERVERID}
-                  </span>
-                </div>
-                <div className="flex items-center text-sm text-gray-600">
-                  <svg
-                    className="w-4 h-4 mr-2 text-green-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                    />
-                  </svg>
-                  <span>ห้อง: </span>
-                  <span className="ml-1 font-medium text-green-700">
-                    {bookingToApprove?.CFRNAME}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>,
-          {
-            duration: 3000,
-            className:
-              "bg-white border-l-4 border-l-green-500 shadow-lg rounded-lg",
-            style: {
-              background: "linear-gradient(to right, #f0fdf4, white)",
-            },
-          }
-        );
+        toast.success("อนุมัติการจองสำเร็จ");
       } else {
-        toast.error(data.error || "เกิดข้อผิดพลาดในการอนุมัติการจอง", {
-          style: {
-            background: "#FEE2E2",
-            color: "#991B1B",
-            border: "1px solid #FCA5A5",
-          },
-          duration: 3000,
-        });
+        throw new Error(data.error || "เกิดข้อผิดพลาดในการอนุมัติการจอง");
       }
     } catch (error) {
       console.error("Error approving booking:", error);
-      toast.error("เกิดข้อผิดพลาดในการอนุมัติการจอง", {
-        style: {
-          background: "#FEE2E2",
-          color: "#991B1B",
-          border: "1px solid #FCA5A5",
-        },
-        duration: 3000,
-      });
+      toast.error("เกิดข้อผิดพลาดในการอนุมัติการจอง");
     }
   };
 
@@ -280,20 +173,23 @@ const AccessSection = () => {
       value?.toString().toLowerCase().includes(searchTerm.toLowerCase())
     )
   );
+
   const sortedRecords = filteredRecords.sort(
     (a, b) => new Date(b.BDATE) - new Date(a.BDATE)
   );
+
   const totalPages = Math.ceil(sortedRecords.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const paginatedRecords = sortedRecords.slice(
     startIndex,
     startIndex + ITEMS_PER_PAGE
   );
+
   const handlePageChange = (page) => {
     setCurrentPage(page);
     document
       .querySelector(".rounded-md.border")
-      .scrollIntoView({ behavior: "smooth", block: "start" });
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
   // Animation variants
   const tableVariants = {
@@ -336,275 +232,222 @@ const AccessSection = () => {
     },
   };
   return (
-    <motion.div initial="hidden" animate="show" variants={cardVariants}>
-      <Card className="w-full">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+    <motion.div
+      initial="hidden"
+      animate="show"
+      variants={containerVariants}
+      className="p-6 space-y-6"
+    >
+      <Card className="backdrop-blur-sm bg-white/90 border-none shadow-xl">
+        <CardHeader className="border-b border-gray-100 pb-6">
+          <div className="flex items-center justify-between">
+            <motion.div variants={itemVariants}>
+              <CardTitle className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+                จัดการจองห้อง
+              </CardTitle>
+            </motion.div>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-6">
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
+            variants={itemVariants}
+            className="flex items-center space-x-4 mb-6"
           >
-            <CardTitle className="text-2xl font-bold">จัดการจองห้อง</CardTitle>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-            className="flex items-center space-x-2"
-          >
-            <div className="relative">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <Input
                 type="text"
                 placeholder="ค้นหาการจอง..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8 transition-all duration-300 focus:ring-2 focus:ring-blue-500"
+                className="pl-10 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500 transition-all duration-300"
               />
             </div>
           </motion.div>
-        </CardHeader>
-        <CardContent>
-          <motion.div
-            className="rounded-md border min-h-[600px] flex flex-col"
-            variants={cardVariants}
-          >
-            <div className="flex-grow">
-              <Table className="border">
-                <TableHeader>
-                  <TableRow className="border-b">
-                    <TableHead className="border-r w-[100px]">
-                      รหัสการจอง
-                    </TableHead>
-                    <TableHead className="border-r w-[100px]">
-                      รหัสพนักงาน
-                    </TableHead>
-                    <TableHead className="border-r w-[150px]">
-                      ชื่อห้อง
-                    </TableHead>
-                    <TableHead className="border-r w-[120px]">
-                      วันที่เริ่มต้น
-                    </TableHead>
-                    <TableHead className="border-r w-[100px]">
-                      เวลาเริ่มต้น
-                    </TableHead>
-                    <TableHead className="border-r w-[100px]">
-                      เวลาสิ้นสุด
-                    </TableHead>
-                    <TableHead className="border-r w-[120px]">
-                      เวลาเข้าใช้งาน
-                    </TableHead>
-                    <TableHead className="border-r w-[150px]">สถานะ</TableHead>
-                    <TableHead className="w-[100px]">การจัดการ</TableHead>
-                  </TableRow>
-                </TableHeader>
+          <motion.div variants={itemVariants} className="booking-table overflow-hidden rounded-lg border border-gray-200 bg-white">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-gray-50">
+                  <TableHead className="font-semibold text-gray-600">รหัสการจอง</TableHead>
+                  <TableHead className="font-semibold text-gray-600">รหัสพนักงาน</TableHead>
+                  <TableHead className="font-semibold text-gray-600">ชื่อห้อง</TableHead>
+                  <TableHead className="font-semibold text-gray-600">วันที่เริ่มต้น</TableHead>
+                  <TableHead className="font-semibold text-gray-600">เวลาเริ่มต้น</TableHead>
+                  <TableHead className="font-semibold text-gray-600">เวลาสิ้นสุด</TableHead>
+                  <TableHead className="font-semibold text-gray-600">เวลาเข้าใช้งาน</TableHead>
+                  <TableHead className="font-semibold text-gray-600">สถานะ</TableHead>
+                  <TableHead className="font-semibold text-gray-600">การจัดการ</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 <AnimatePresence mode="wait">
-                  <motion.tbody
-                    variants={tableVariants}
-                    initial="hidden"
-                    animate="show"
-                    exit="exit"
-                  >
-                    {paginatedRecords.length === 0 ? (
-                      <motion.tr variants={rowVariants}>
-                        <TableCell
-                          colSpan={9}
-                          className="h-[400px] text-center border"
-                        >
-                          ไม่พบข้อมูล
+                  {paginatedRecords.length === 0 ? (
+                    <motion.tr
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                    >
+                      <TableCell
+                        colSpan={9}
+                        className="h-[400px] text-center text-gray-500"
+                      >
+                        ไม่พบข้อมูล
+                      </TableCell>
+                    </motion.tr>
+                  ) : (
+                    paginatedRecords.map((record) => (
+                      <motion.tr
+                        key={record.RESERVERID}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.3 }}
+                        className="hover:bg-gray-50/50 transition-colors duration-200"
+                      >
+                        <TableCell className="font-medium">{record.RESERVERID}</TableCell>
+                        <TableCell>{record.ESSN}</TableCell>
+                        <TableCell>{record.CFRNAME}</TableCell>
+                        <TableCell>
+                          {new Date(record.BDATE).toLocaleDateString("th-TH")}
+                        </TableCell>
+                        <TableCell>
+                          {new Date(record.STARTTIME).toLocaleTimeString("th-TH", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </TableCell>
+                        <TableCell>
+                          {new Date(record.ENDTIME).toLocaleTimeString("th-TH", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </TableCell>
+                        <TableCell>
+                          {record.TIME
+                            ? new Date(record.TIME).toLocaleTimeString("th-TH", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })
+                            : "-"}
+                        </TableCell>
+                        <TableCell>
+                          <span
+                            className={`inline-flex items-center px-3 py-1 rounded-full text-sm ${
+                              statusColors[record.STUBOOKING]
+                            }`}
+                          >
+                            <span className="w-1.5 h-1.5 rounded-full bg-current mr-2"></span>
+                            {statusMap[record.STUBOOKING]}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                className="h-8 w-8 p-0 hover:bg-gray-100 transition-colors duration-200"
+                                disabled={record.STUBOOKING === 2 || record.STUBOOKING === 3}
+                              >
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            {record.STUBOOKING !== 2 && record.STUBOOKING !== 3 && (
+                              <DropdownMenuContent align="end" className="w-32">
+                                {record.STUBOOKING === 4 && (
+                                  <>
+                                    <DropdownMenuItem
+                                      onClick={() => handleApproveClick(record)}
+                                      className="cursor-pointer"
+                                    >
+                                      อนุมัติ
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      onClick={() => handleCancelClick(record)}
+                                      className="cursor-pointer text-red-600"
+                                    >
+                                      ยกเลิก
+                                    </DropdownMenuItem>
+                                  </>
+                                )}
+                                {record.STUBOOKING === 1 && (
+                                  <DropdownMenuItem
+                                    onClick={() => handleCancelClick(record)}
+                                    className="cursor-pointer text-red-600"
+                                  >
+                                    ยกเลิก
+                                  </DropdownMenuItem>
+                                )}
+                                {record.STUBOOKING === 5 && (
+                                  <DropdownMenuItem
+                                    onClick={() => handleShowCancelReason(record)}
+                                    className="cursor-pointer"
+                                  >
+                                    <Info className="h-4 w-4 mr-2" />
+                                    ดูเหตุผลการยกเลิก
+                                  </DropdownMenuItem>
+                                )}
+                              </DropdownMenuContent>
+                            )}
+                          </DropdownMenu>
                         </TableCell>
                       </motion.tr>
-                    ) : (
-                      paginatedRecords.map((record) => (
-                        <motion.tr
-                          key={record.RESERVERID}
-                          variants={rowVariants}
-                          initial="hidden"
-                          animate="show"
-                          exit="exit"
-                          className="hover:bg-gray-50 transition-colors duration-200 border-b"
-                        >
-                          <TableCell className="border-r">
-                            {record.RESERVERID}
-                          </TableCell>
-                          <TableCell className="border-r">
-                            {record.ESSN}
-                          </TableCell>
-                          <TableCell className="border-r">
-                            {record.CFRNAME}
-                          </TableCell>
-                          <TableCell className="border-r">
-                            {new Date(record.BDATE).toLocaleDateString("th-TH")}
-                          </TableCell>
-                          <TableCell className="border-r">
-                            {new Date(record.STARTTIME).toLocaleTimeString(
-                              "th-TH",
-                              {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              }
-                            )}
-                          </TableCell>
-                          <TableCell className="border-r">
-                            {new Date(record.ENDTIME).toLocaleTimeString(
-                              "th-TH",
-                              {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              }
-                            )}
-                          </TableCell>
-                          <TableCell className="border-r">
-                            {record.TIME
-                              ? new Date(record.TIME).toLocaleTimeString(
-                                  "th-TH",
-                                  {
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                  }
-                                )
-                              : "-"}
-                          </TableCell>
-                          <TableCell className="border-r">
-                            <div className="w-[130px]">
-                              <span
-                                className={`inline-block w-full text-center px-2 py-1 rounded-full text-xs font-medium ${
-                                  statusColors[record.STUBOOKING]
-                                }`}
-                              >
-                                {statusMap[record.STUBOOKING]}
-                              </span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  className="h-8 w-8 p-0"
-                                  disabled={
-                                    record.STUBOOKING === 2 ||
-                                    record.STUBOOKING === 3
-                                  }
-                                >
-                                  <span className="sr-only">Open menu</span>
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              {record.STUBOOKING !== 2 &&
-                                record.STUBOOKING !== 3 && (
-                                  <DropdownMenuContent align="end">
-                                    {record.STUBOOKING === 4 && (
-                                      <>
-                                        <DropdownMenuItem
-                                          onClick={() =>
-                                            handleApproveClick(record)
-                                          }
-                                        >
-                                          อนุมัติ
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem
-                                          onClick={() =>
-                                            handleCancelClick(record)
-                                          }
-                                          className="text-red-600"
-                                        >
-                                          ยกเลิก
-                                        </DropdownMenuItem>
-                                      </>
-                                    )}
-                                    {record.STUBOOKING === 1 && (
-                                      <DropdownMenuItem
-                                        onClick={() =>
-                                          handleCancelClick(record)
-                                        }
-                                        className="text-red-600"
-                                      >
-                                        ยกเลิก
-                                      </DropdownMenuItem>
-                                    )}
-                                    {record.STUBOOKING === 5 && (
-                                      <DropdownMenuItem
-                                        onClick={() =>
-                                          handleShowCancelReason(record)
-                                        }
-                                      >
-                                        <Info className="h-4 w-4 mr-2" />
-                                        ดูเหตุผลการยกเลิก
-                                      </DropdownMenuItem>
-                                    )}
-                                  </DropdownMenuContent>
-                                )}
-                            </DropdownMenu>
-                          </TableCell>
-                        </motion.tr>
-                      ))
-                    )}
-                    {paginatedRecords.length < ITEMS_PER_PAGE &&
-                      [...Array(ITEMS_PER_PAGE - paginatedRecords.length)].map(
-                        (_, index) => (
-                          <TableRow
-                            key={`empty-${index}`}
-                            className="h-[52px] border-b"
-                          >
-                            <TableCell colSpan={9}>&nbsp;</TableCell>
-                          </TableRow>
-                        )
-                      )}
-                  </motion.tbody>
+                    ))
+                  )}
                 </AnimatePresence>
-              </Table>
-            </div>
-            <motion.div
-              className="flex items-center justify-between px-4 py-4 border-t"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <div className="text-sm text-gray-700">
-                แสดง {startIndex + 1} ถึง{" "}
-                {Math.min(startIndex + ITEMS_PER_PAGE, sortedRecords.length)}{" "}
-                จาก {sortedRecords.length} รายการ
-              </div>
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="h-8 w-8 p-0"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                {[...Array(totalPages)].map((_, i) => (
+              </TableBody>
+            </Table>
+            {/* Pagination */}
+            <div className="border-t border-gray-200 px-4 py-4 sm:px-6">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-700">
+                  แสดง <span className="font-medium">{startIndex + 1}</span> ถึง{" "}
+                  <span className="font-medium">
+                    {Math.min(startIndex + ITEMS_PER_PAGE, sortedRecords.length)}
+                  </span>{" "}
+                  จาก <span className="font-medium">{sortedRecords.length}</span>{" "}
+                  รายการ
+                </div>
+                <div className="flex space-x-2">
                   <Button
-                    key={i + 1}
-                    variant={currentPage === i + 1 ? "default" : "outline"}
+                    variant="outline"
                     size="sm"
-                    onClick={() => handlePageChange(i + 1)}
-                    className={`h-8 w-8 p-0 ${
-                      currentPage === i + 1
-                        ? "bg-blue-600 text-white hover:bg-blue-700"
-                        : ""
-                    }`}
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="h-8 w-8 p-0"
                   >
-                    {i + 1}
+                    <ChevronLeft className="h-4 w-4" />
                   </Button>
-                ))}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="h-8 w-8 p-0"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
+                  {[...Array(totalPages)].map((_, i) => (
+                    <Button
+                      key={i + 1}
+                      variant={currentPage === i + 1 ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => handlePageChange(i + 1)}
+                      className={`h-8 w-8 p-0 ${
+                        currentPage === i + 1
+                          ? "bg-emerald-600 hover:bg-emerald-700"
+                          : ""
+                      }`}
+                    >
+                      {i + 1}
+                    </Button>
+                  ))}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="h-8 w-8 p-0"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
-            </motion.div>
+            </div>
           </motion.div>
         </CardContent>
       </Card>
+      {/* Keep existing dialogs with the same structure */}
       <AnimatePresence>
         {cancelDialogOpen && (
           <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>

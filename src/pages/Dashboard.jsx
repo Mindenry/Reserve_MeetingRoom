@@ -72,7 +72,7 @@ const Dashboard = () => {
               <Route path="/booking" element={<BookingSection />} />
             )}
             {hasPermission(9) && (
-              <Route path="/user-cancel" element={<BookingHistorySection />} />
+              <Route path="/bookinghistory" element={<BookingHistorySection />} />
             )}
             {hasPermission(10) && (
               <Route path="/contact" element={<ContactSection />} />

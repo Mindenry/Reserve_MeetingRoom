@@ -102,3 +102,57 @@
 .hover-glow {
   @apply transition-all duration-300 hover:shadow-lg hover:shadow-white/10;
 }
+
+/* Add this to your global.css */
+@media print {
+  /* Hide all browser chrome and page info */
+  @page {
+    size: auto;
+    margin: 0mm;
+  }
+  
+  /* Hide ALL default headers and footers */
+  html {
+    height: 100%;
+    overflow: hidden;
+  }
+  
+  body {
+    height: 100%;
+    overflow: hidden;
+    background-color: #FFFFFF;
+  }
+  
+  /* Hide everything by default */
+  body * {
+    visibility: hidden;
+  }
+  
+  /* Only show the dialog content */
+  .dialog-content,
+  .dialog-content * {
+    visibility: visible;
+  }
+  
+  /* Position the receipt to fill the whole page */
+  .dialog-content {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: 210mm !important; /* A4 width */
+    height: auto !important;
+    max-height: 297mm !important; /* A4 height */
+    overflow: visible !important;
+    box-shadow: none !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+  }
+  
+  /* Force remove any URL or page number display */
+  head, header, footer {
+    display: none !important;
+  }
+}

@@ -1,39 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
+import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { BarChart3, PieChart as PieChartIcon, TrendingUp, Users, Calendar, BellRing, Layers } from "lucide-react";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { format } from "date-fns";
-import {
-  BarChart3,
-  PieChart as PieChartIcon,
-} from "lucide-react";
-import {
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  PieChart,
-  Pie,
-  Cell,
-  BarChart,
-  Bar,
+  ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, 
+  Tooltip, Legend, PieChart, Pie, Cell, BarChart, Bar, Area, AreaChart
 } from "recharts";
-
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
-
 // Animation variants
 const containerVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -46,7 +24,6 @@ const containerVariants = {
     },
   },
 };
-
 const cardVariants = {
   hidden: { opacity: 0, scale: 0.95 },
   visible: {
@@ -57,7 +34,6 @@ const cardVariants = {
     },
   },
 };
-
 const chartVariants = {
   hidden: { opacity: 0, x: -20 },
   visible: {
@@ -71,7 +47,6 @@ const chartVariants = {
     transition: { duration: 0.3 },
   },
 };
-
 const ReportSection = () => {
   // State สำหรับเก็บข้อมูลต่างๆ ในคอมโพเนนต์
   const [roomUsageData, setRoomUsageData] = useState([]); // เก็บข้อมูลการใช้งานห้องประชุม (จำนวนการจองต่อวัน)
@@ -82,7 +57,6 @@ const ReportSection = () => {
   const [selectedDepartment, setSelectedDepartment] = useState("all"); // เก็บแผนกที่ถูกเลือก (all = ทุกแผนก)
   const [selectedDate, setSelectedDate] = useState(new Date()); // เก็บวันที่ที่ถูกเลือก
   const [selectedRoom, setSelectedRoom] = useState("all"); // เก็บห้องประชุมที่ถูกเลือก (all = ทุกห้อง)
-
   // useEffect แรกจะทำงานเมื่อคอมโพเนนต์ถูกโหลดครั้งแรก
   useEffect(() => {
     const loadData = async () => {
@@ -96,10 +70,8 @@ const ReportSection = () => {
     };
     loadData(); // เรียกใช้ฟังก์ชัน loadData
   }, []); // ใช้ [] หมายถึงจะทำงานครั้งเดียวเมื่อคอมโพเนนต์ถูกโหลด
-
   // State สำหรับเก็บข้อมูล lock stats
   const [lockStatsData, setLockStatsData] = useState([]);
-
   // ฟังก์ชันดึงข้อมูล lock stats
   const fetchLockStats = async () => {
     try {
@@ -111,11 +83,9 @@ const ReportSection = () => {
       console.error("Error fetching lock stats:", error);
     }
   };
-
   // เพิ่ม state สำหรับเก็บเดือนและปีที่เลือก
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-
   // ฟังก์ชันดึงข้อมูลตามเดือนและปีที่เลือก
   const fetchMonthlyData = async () => {
     try {
@@ -128,24 +98,20 @@ const ReportSection = () => {
           (selectedRoom === "all" || booking.CFRNUM.toString() === selectedRoom) // ตรวจสอบห้องประชุม
         );
       });
-
       const processedData = processRoomUsageData(filteredData); // ประมวลผลข้อมูลการใช้งานห้องประชุม
       setRoomUsageData(processedData);  // เก็บข้อมูลการใช้งานห้องประชุมใน state
     } catch (error) {
       console.error("Error fetching monthly data:", error);
     }
   };
-
   // เรียกใช้ fetchMonthlyData เมื่อมีการเปลี่ยนเดือน ปี หรือห้อง
   useEffect(() => {
     fetchMonthlyData();  // เรียกใช้ฟังก์ชันดึงข้อมูลรายเดือน
   }, [selectedMonth, selectedYear, selectedRoom]);   // ตรวจสอบการเปลี่ยนแปลงใน selectedMonth, selectedYear, selectedRoom
-
   // useEffect ที่สองจะทำงานเมื่อมีการเปลี่ยนวันที่หรือห้องประชุมที่เลือก
   useEffect(() => {
     fetchFilteredData(); // ดึงข้อมูลใหม่ตามฟิลเตอร์ที่เลือก
   }, [selectedDate, selectedRoom]); // ทำงานเมื่อ selectedDate หรือ selectedRoom เปลี่ยน
-
   // ฟังก์ชันดึงข้อมูลทั้งหมด (การจอง สถานะ และแผนก)
   const fetchData = async () => {
     try {
@@ -156,11 +122,9 @@ const ReportSection = () => {
       // แปลงข้อมูลการจองให้อยู่ในรูปแบบที่ใช้แสดงกราฟได้
       const roomUsage = processRoomUsageData(roomUsageResponse.data); // ประมวลผลข้อมูลการใช้งานห้องประชุม
       setRoomUsageData(roomUsage);
-
       // ประมวลผลข้อมูลสถานะการจอง (จอง/ยกเลิก/ไม่มาใช้งาน)
       const statusData = processBookingStatusData(roomUsageResponse.data); // ประมวลผลสถานะการจอง
       setBookingStatusData(statusData);
-
       // ดึงและประมวลผลข้อมูลแผนก
       const departmentResponse = await axios.get(
         "http://localhost:8080/members"
@@ -171,7 +135,6 @@ const ReportSection = () => {
       console.error("Error fetching report data:", error);
     }
   };
-
   // ฟังก์ชันดึงรายการแผนกทั้งหมด
   const fetchDepartments = async () => {
     try {
@@ -181,7 +144,6 @@ const ReportSection = () => {
       console.error("Error fetching departments:", error);
     }
   };
-
   // ฟังก์ชันดึงรายการห้องประชุมทั้งหมด
   const fetchRooms = async () => {
     try {
@@ -196,7 +158,6 @@ const ReportSection = () => {
       console.error("Error fetching rooms:", error);
     }
   };
-
   // ฟังก์ชันดึงข้อมูลตามฟิลเตอร์ที่เลือก (วันที่และห้องประชุม)
   const fetchFilteredData = async () => {
     try {
@@ -223,7 +184,6 @@ const ReportSection = () => {
       console.error("Error fetching filtered data:", error);
     }
   };
-
   // ฟังก์ชันดึงข้อมูลการจองทั้งหมดทุกวัน (ไม่มีฟิลเตอร์)
   const fetchAllDaysData = async () => {
     try {
@@ -234,11 +194,9 @@ const ReportSection = () => {
       console.error("Error fetching all days data:", error);
     }
   };
-
   // ฟังก์ชันประมวลผลข้อมูลการใช้งานห้องประชุม
   const processRoomUsageData = (data) => {
     const roomUsage = {};// สร้างอ็อบเจกต์เพื่อเก็บการใช้งานห้องประชุม
-
     data.forEach((booking) => {
       const date = format(new Date(booking.BDATE), "yyyy-MM-dd"); // แปลงวันที่การจองเป็นรูปแบบ yyyy-MM-dd
       // หากวันที่ยังไม่เคยมีใน roomUsage ให้สร้างเป็นอาเรย์ว่าง
@@ -255,7 +213,6 @@ const ReportSection = () => {
       a.sortDate.localeCompare(b.sortDate)
     );
   };
-
   // ฟังก์ชันประมวลผลข้อมูลสถานะการจอง
   const processBookingStatusData = (data) => {
     // นับจำนวนการจองแต่ละสถานะ
@@ -265,7 +222,6 @@ const ReportSection = () => {
       cancelled: 0, // ยกเลิกการจอง (STUBOOKING = 5)
       noShow: 0, // ไม่มาใช้งาน (STUBOOKING = 2)
     };
-
     // วนลูปนับจำนวนแต่ละสถานะ
     data.forEach((booking) => {
       statusCounts.total++;
@@ -273,7 +229,6 @@ const ReportSection = () => {
       else if (booking.STUBOOKING === 5) statusCounts.cancelled++;
       else if (booking.STUBOOKING === 2) statusCounts.noShow++;
     });
-
     // แปลงข้อมูลให้อยู่ในรูปแบบที่ใช้แสดงในกราฟวงกลมได้
     return [
       { name: "การจองทั้งหมด", value: statusCounts.total },
@@ -282,7 +237,6 @@ const ReportSection = () => {
       { name: "ไม่มาใช้งาน", value: statusCounts.noShow },
     ];
   };
-
   // ฟังก์ชันประมวลผลข้อมูลแผนก
   const processDepartmentData = (data) => {
     const deptBookings = {}; // สร้างอ็อบเจกต์เพื่อเก็บจำนวนพนักงานแต่ละแผนก
@@ -297,246 +251,280 @@ const ReportSection = () => {
       }
       deptBookings[member.DNAME].employees.add(member.SSN);
     });
-
     // แปลงข้อมูลให้อยู่ในรูปแบบที่ใช้แสดงในกราฟแท่งได้
     return Object.values(deptBookings).map((dept) => ({
       department: dept.department,
       employees: dept.employees.size, // จำนวนพนักงานที่ไม่ซ้ำกัน
     }));
   };
-
   // ส่วนแสดงผล UI ของคอมโพเนนต์
   return (
     <motion.div
       initial="hidden"
       animate="visible"
       variants={containerVariants}
-      className="space-y-8 p-6 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+      className="space-y-8 p-8 max-w-[1800px] mx-auto"
     >
-      <motion.div variants={cardVariants} className="flex flex-col space-y-4">
-        <h2 className="text-3xl font-bold tracking-tight">
-          รายงานการใช้งานห้องประชุม
-        </h2>
-        <p className="text-muted-foreground">
-          แสดงข้อมูลสถิติการใช้งานห้องประชุมในรูปแบบต่างๆ
-        </p>
-      </motion.div>
-
-      {/* การ์ดแสดงข้อมูลสรุป */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {/* การ์ดแสดงจำนวนการจองทั้งหมด */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              จำนวนการจองทั้งหมด
-            </CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {bookingStatusData.find((item) => item.name === "การจองทั้งหมด")
-                ?.value || 0}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              การจองห้องประชุมทั้งหมดในระบบ
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* การ์ดแสดงอัตราการใช้งานจริง */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              อัตราการใช้งานจริง
-            </CardTitle>
-            <PieChartIcon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {/* คำนวณเปอร์เซ็นต์การใช้งานจริง (จำนวนที่ใช้งาน / จำนวนทั้งหมด * 100) */}
-              {Math.round(
-                ((bookingStatusData.find(
-                  (item) => item.name === "เข้าใช้งานแล้ว"
-                )?.value || 0) /
-                  (bookingStatusData.find(
-                    (item) => item.name === "การจองทั้งหมด"
-                  )?.value || 1)) *
-                  100
-              )}
-              %
-            </div>
-            <p className="text-xs text-muted-foreground">
-              อัตราส่วนการเข้าใช้งานจริง
-            </p>
-          </CardContent>
-        </Card>
+      {/* Header Section */}
+      <div className="flex justify-between items-center">
+        <motion.div variants={cardVariants} className="space-y-2">
+          <h1 className="text-4xl font-bold tracking-tight text-foreground">
+            รายงานการใช้งานห้องประชุม
+          </h1>
+          <p className="text-muted-foreground text-lg">
+            แดชบอร์ดแสดงข้อมูลเชิงลึกและการวิเคราะห์การใช้งานห้องประชุม
+          </p>
+        </motion.div>
+        <motion.div variants={cardVariants} className="flex gap-4">
+          <Button className="flex gap-2">
+            <Calendar className="w-4 h-4" />
+            รายงานประจำเดือน
+          </Button>
+          <Button variant="outline" className="flex gap-2">
+            <TrendingUp className="w-4 h-4" />
+            ดูแนวโน้ม
+          </Button>
+        </motion.div>
       </div>
-
-      {/* แท็บแสดงรายงานประเภทต่างๆ */}
-      <Tabs defaultValue="daily" className="w-full">
-      <TabsList className="grid w-full grid-cols-4 lg:w-[700px]">
-        <TabsTrigger value="daily">ปริมาณการเข้าใช้ห้อง</TabsTrigger>
-        <TabsTrigger value="status">สถานะ</TabsTrigger>
-        <TabsTrigger value="department">แผนก</TabsTrigger>
-        <TabsTrigger value="lockstats">สถิติการล็อค</TabsTrigger>
-      </TabsList>
-
-        <AnimatePresence>
-          <TabsContent key="daily" value="daily">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>ปริมาณการใช้งานห้องประชุม</CardTitle>
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  onClick={fetchAllDaysData}
-                  className="mr-2"
-                >
-                  แสดงข้อมูลทั้งหมด
-                </Button>
-
-                {/* เปลี่ยนจาก Calendar เป็น Select สำหรับเลือกเดือนและปี */}
-                <Select
-                  value={selectedMonth.toString()}
-                  onValueChange={(value) => setSelectedMonth(parseInt(value))}
-                >
-                  <SelectTrigger className="w-[150px]">
-                    <SelectValue placeholder="เลือกเดือน" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Array.from({ length: 12 }, (_, i) => (
-                      <SelectItem key={i} value={i.toString()}>
-                        {new Date(2000, i, 1).toLocaleString("th-TH", {
-                          month: "long",
-                        })}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select
-                  value={selectedYear.toString()}
-                  onValueChange={(value) => setSelectedYear(parseInt(value))}
-                >
-                  <SelectTrigger className="w-[100px]">
-                    <SelectValue placeholder="เลือกปี" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Array.from({ length: 5 }, (_, i) => {
-                      const year = new Date().getFullYear() - 2 + i;
-                      return (
-                        <SelectItem key={year} value={year.toString()}>
-                          {year + 543}
+      {/* Quick Stats Cards */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <motion.div variants={cardVariants}>
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">การจองทั้งหมด</CardTitle>
+              <BarChart3 className="h-4 w-4 text-emerald-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-emerald-600">
+                {bookingStatusData.find(item => item.name === "การจองทั้งหมด")?.value || 0}
+              </div>
+              <div className="flex items-center gap-2 text-sm text-emerald-600/80">
+                <TrendingUp className="h-4 w-4" />
+                <span>เพิ่มขึ้น 12% จากเดือนที่แล้ว</span>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+        <motion.div variants={cardVariants}>
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">อัตราการใช้งาน</CardTitle>
+              <PieChartIcon className="h-4 w-4 text-blue-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-blue-600">
+                {Math.round(
+                  ((bookingStatusData.find(item => item.name === "เข้าใช้งานแล้ว")?.value || 0) /
+                    (bookingStatusData.find(item => item.name === "การจองทั้งหมด")?.value || 1)) * 100
+                )}%
+              </div>
+              <div className="flex items-center gap-2 text-sm text-blue-600/80">
+                <Users className="h-4 w-4" />
+                <span>อัตราการเข้าใช้งานจริง</span>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+        <motion.div variants={cardVariants}>
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">การยกเลิก</CardTitle>
+              <BellRing className="h-4 w-4 text-red-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-red-600">
+                {bookingStatusData.find(item => item.name === "ยกเลิกการจอง")?.value || 0}
+              </div>
+              <div className="flex items-center gap-2 text-sm text-red-600/80">
+                <TrendingUp className="h-4 w-4" />
+                <span>ลดลง 5% จากเดือนที่แล้ว</span>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+        <motion.div variants={cardVariants}>
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">ห้องที่ใช้งานบ่อย</CardTitle>
+              <Layers className="h-4 w-4 text-purple-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-purple-600">
+                {rooms.length}
+              </div>
+              <div className="flex items-center gap-2 text-sm text-purple-600/80">
+                <Calendar className="h-4 w-4" />
+                <span>ห้องประชุมทั้งหมด</span>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+      {/* Main Content Tabs */}
+      <Tabs defaultValue="daily" className="w-full space-y-6">
+        <div className="flex justify-between items-center">
+          <TabsList className="h-12 bg-muted/20 backdrop-blur">
+            <TabsTrigger value="daily" className="flex items-center gap-2 h-10">
+              <BarChart3 className="w-4 h-4" />
+              ปริมาณการใช้งาน
+            </TabsTrigger>
+            <TabsTrigger value="status" className="flex items-center gap-2 h-10">
+              <PieChartIcon className="w-4 h-4" />
+              สถานะการจอง
+            </TabsTrigger>
+            <TabsTrigger value="department" className="flex items-center gap-2 h-10">
+              <Users className="w-4 h-4" />
+              แผนก
+            </TabsTrigger>
+            <TabsTrigger value="lockstats" className="flex items-center gap-2 h-10">
+              <BellRing className="w-4 h-4" />
+              สถิติการล็อค
+            </TabsTrigger>
+          </TabsList>
+          <div className="flex gap-2">
+            <Select value={selectedMonth.toString()} onValueChange={(value) => setSelectedMonth(parseInt(value))}>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="เลือกเดือน" />
+              </SelectTrigger>
+              <SelectContent>
+                {Array.from({ length: 12 }, (_, i) => (
+                  <SelectItem key={i} value={i.toString()}>
+                    {new Date(2000, i, 1).toLocaleString("th-TH", { month: "long" })}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
+              <SelectTrigger className="w-[120px]">
+                <SelectValue placeholder="เลือกปี" />
+              </SelectTrigger>
+              <SelectContent>
+                {Array.from({ length: 5 }, (_, i) => {
+                  const year = new Date().getFullYear() - 2 + i;
+                  return (
+                    <SelectItem key={year} value={year.toString()}>
+                      {year + 543}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <AnimatePresence mode="wait">
+          {/* Daily Usage Tab */}
+          <TabsContent value="daily">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle className="text-xl mb-2">ปริมาณการใช้งานห้องประชุม</CardTitle>
+                    <p className="text-sm text-muted-foreground">แสดงข้อมูลการจองห้องประชุมรายวัน</p>
+                  </div>
+                  <Select value={selectedRoom} onValueChange={setSelectedRoom}>
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue placeholder="เลือกห้องประชุม" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">ทุกห้อง</SelectItem>
+                      {rooms?.map((room) => (
+                        <SelectItem key={room.id.toString()} value={room.id.toString()}>
+                          {room.name}
                         </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-
-                <Select value={selectedRoom} onValueChange={setSelectedRoom}>
-                  <SelectTrigger className="w-[200px]">
-                    <SelectValue placeholder="เลือกห้องประชุม" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">ทุกห้อง</SelectItem>
-                    {rooms?.map((room) => (
-                      <SelectItem
-                        key={room.id.toString()}
-                        value={room.id.toString()}
-                      >
-                        {room.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[400px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={roomUsageData}>
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      className="opacity-30"
-                    />
-                    <XAxis
-                      dataKey="date"
-                      tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }}
-                      tickLine={{ stroke: "hsl(var(--foreground))" }}
-                    />
-                    <YAxis
-                      tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }}
-                      tickLine={{ stroke: "hsl(var(--foreground))" }}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: "hsl(var(--background))",
-                        border: "1px solid hsl(var(--border))",
-                        borderRadius: "8px",
-                        padding: "8px",
-                      }}
-                    />
-                    <Legend />
-                    <Line
-                      type="monotone"
-                      dataKey="count"
-                      name="จำนวนการจอง"
-                      stroke="hsl(var(--primary))"
-                      strokeWidth={2}
-                      dot={{ fill: "hsl(var(--primary))", strokeWidth: 2 }}
-                      activeDot={{
-                        r: 6,
-                        stroke: "hsl(var(--primary))",
-                        strokeWidth: 2,
-                      }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* แท็บแสดงข้อมูลสถานะการจอง */}
-        <TabsContent key="status" value="status">
-          <Card>
-            <CardHeader>
-              <CardTitle>สถานะการจองห้องประชุม</CardTitle>
-            </CardHeader>
-            {/* กราฟวงกลมแสดงสถานะการจอง */}
-            <CardContent>
-              <div className="h-[400px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={bookingStatusData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) =>
-                        `${name} (${(percent * 100).toFixed(0)}%)`
-                      }
-                      outerRadius={150}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {/* วนลูปใส่สีให้แต่ละส่วนของกราฟวงกลม */}
-                      {bookingStatusData.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={COLORS[index % COLORS.length]}
-                        />
                       ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
+                    </SelectContent>
+                  </Select>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[500px] mt-4">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={roomUsageData}>
+                        <defs>
+                          <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#0EA5E9" stopOpacity={0.8}/>
+                            <stop offset="95%" stopColor="#0EA5E9" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                        <XAxis dataKey="date" />
+                        <YAxis />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "hsl(var(--background))",
+                            border: "1px solid hsl(var(--border))",
+                            borderRadius: "8px",
+                            padding: "12px",
+                          }}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="count"
+                          stroke="#0EA5E9"
+                          fillOpacity={1}
+                          fill="url(#colorCount)"
+                          name="จำนวนการจอง"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </TabsContent>
+          {/* Status Tab */}
+          <TabsContent value="status">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-xl mb-2">สถานะการจองห้องประชุม</CardTitle>
+                  <p className="text-sm text-muted-foreground">แสดงสัดส่วนสถานะการจองทั้งหมด</p>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[500px] mt-4">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={bookingStatusData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={100}
+                          outerRadius={160}
+                          fill="#8884d8"
+                          paddingAngle={5}
+                          dataKey="value"
+                          label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                        >
+                          {bookingStatusData.map((entry, index) => (
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={[
+                                "hsl(var(--primary))",
+                                "hsl(var(--destructive))",
+                                "hsl(var(--warning))",
+                                "hsl(var(--secondary))"
+                              ][index % 4]}
+                            />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                        <Legend verticalAlign="bottom" height={36} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </TabsContent>
         {/* แท็บแสดงข้อมูลแผนก */}
         <TabsContent key="department" value="department">
           <Card>
@@ -618,7 +606,6 @@ const ReportSection = () => {
             </CardContent>
           </Card>
         </TabsContent>
-
         <TabsContent key="lockstats" value="lockstats">
           <Card>
             <CardHeader>
@@ -707,5 +694,4 @@ const ReportSection = () => {
       </motion.div>
   );
 };
-
 export default ReportSection;

@@ -35,7 +35,7 @@ const Header = () => {
       mnum: 9,
       icon: XCircle,
       label: "ประวัติการจอง",
-      path: "/dashboard/user-cancel",
+      path: "/dashboard/bookinghistory",
     },
     {
       mnum: 10,

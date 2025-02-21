@@ -1,15 +1,15 @@
 import React, { useState, useMemo } from "react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu";
 import {
   Search,
   MoreVertical,
@@ -25,52 +25,50 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
-import { Label } from "../ui/label";
+} from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../ui/select";
+} from "@/components/ui/select";
 import axios from "axios";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-// กำหนด URL ของ API และจำนวนรายการที่จะแสดงต่อหน้า
+
 const API_URL = "http://localhost:8080";
 const ITEMS_PER_PAGE = 10;
-// ฟังก์ชันสำหรับดึงข้อมูลสมาชิกจาก API
+
+// Utility functions
 const fetchMembers = async () => {
   const response = await axios.get(`${API_URL}/members`);
   return response.data;
 };
-// ฟังก์ชันสำหรับดึงข้อมูลแผนก
+
 const fetchDepartments = async () => {
   const response = await axios.get(`${API_URL}/departments`);
   return response.data;
 };
-// ฟังก์ชันสำหรับดึงข้อมูลตำแหน่ง
+
 const fetchPositions = async () => {
   const response = await axios.get(`${API_URL}/positions`);
   return response.data;
 };
-// ฟังก์ชันสำหรับดึงข้อมูลสถานะการทำงานของพนักงาน
+
 const fetchStatusEmps = async () => {
   const response = await axios.get(`${API_URL}/statusemps`);
   return response.data;
 };
-// ฟังก์ชันแปลง ID ให้เป็นรูปแบบตัวเลข 3 หลัก เช่น 001, 002
-const formatID = (id) => {
-  return id.toString().padStart(3, "0");
-};
-// MembersSection component เป็นหน้าที่แสดงรายชื่อสมาชิก
+
+const formatID = (id) => id.toString().padStart(3, "0");
+
 const MembersSection = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [editingMember, setEditingMember] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  // กำหนด state สำหรับฟอร์มข้อมูลสมาชิกใหม่ที่ต้องการเพิ่มหรือแก้ไข
   const [formData, setFormData] = useState({
     FNAME: "",
     LNAME: "",
@@ -79,22 +77,39 @@ const MembersSection = () => {
     DNO: "",
     PNO: "",
     STUEMP: "",
-  }); // Removed SSN since it will be auto-generated
-  // QueryClient สำหรับจัดการ cache ข้อมูล
+  });
+
   const queryClient = useQueryClient();
-  // กำหนดสีของสถานะการทำงานแต่ละประเภท
-  const statusColors = {
-    1: "bg-green-100 text-green-800", // ทำงาน
-    2: "bg-red-100 text-red-800", // ลาออก
-    3: "bg-gray-100 text-gray-800", // เกษียณ
+
+  // Premium status styling
+  const statusStyles = {
+    1: {
+      bg: "bg-emerald-50",
+      text: "text-emerald-700",
+      border: "border-emerald-200",
+      icon: "🟢",
+    },
+    2: {
+      bg: "bg-red-50",
+      text: "text-red-700",
+      border: "border-red-200",
+      icon: "🔴",
+    },
+    3: {
+      bg: "bg-gray-50",
+      text: "text-gray-700",
+      border: "border-gray-200",
+      icon: "⚪",
+    },
   };
-  // Map สถานะเพื่อให้แสดงชื่อสถานะในภาษาที่เข้าใจง่าย
+
   const statusMap = {
     1: "ทำงาน",
     2: "ลาออก",
-    3: "เกษียณ",
+    3: "เกษียณอายุ",
   };
-  // ใช้ useQuery ดึงข้อมูลสมาชิก แผนก ตำแหน่ง และสถานะการทำงาน
+
+  // Queries
   const {
     data: members = [],
     isLoading,
@@ -103,110 +118,101 @@ const MembersSection = () => {
     queryKey: ["members"],
     queryFn: fetchMembers,
   });
+
   const { data: departments = [] } = useQuery({
     queryKey: ["departments"],
     queryFn: fetchDepartments,
   });
+
   const { data: positions = [] } = useQuery({
     queryKey: ["positions"],
     queryFn: fetchPositions,
   });
+
   const { data: statusEmps = [] } = useQuery({
     queryKey: ["statusEmps"],
     queryFn: fetchStatusEmps,
   });
-  // เรียงลำดับสมาชิกตาม SSN ก่อนแสดงผล
-  const sortedMembers = useMemo(() => {
-    return [...members].sort((a, b) => a.SSN - b.SSN);
-  }, [members]);
-  // กรองข้อมูลสมาชิกตาม search term ที่ผู้ใช้ระบุ
-  const filteredMembers = useMemo(() => {
-    return sortedMembers.filter((member) =>
-      Object.values(member).some((value) =>
-        value?.toString().toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    );
-  }, [sortedMembers, searchTerm]);
-  // คำนวณจำนวนหน้าทั้งหมดของข้อมูลที่กรองแล้ว
+
+  // Memoized data processing
+  const sortedMembers = useMemo(
+    () => [...members].sort((a, b) => a.SSN - b.SSN),
+    [members]
+  );
+
+  const filteredMembers = useMemo(
+    () =>
+      sortedMembers.filter((member) =>
+        Object.values(member).some((value) =>
+          value?.toString().toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      ),
+    [sortedMembers, searchTerm]
+  );
+
   const totalPages = Math.ceil(filteredMembers.length / ITEMS_PER_PAGE);
-  // กำหนดดัชนีเริ่มต้นของรายการในหน้าปัจจุบัน
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  // เลือกรายการตามหน้าปัจจุบันที่จะแสดงผลในตาราง
   const paginatedMembers = filteredMembers.slice(
     startIndex,
     startIndex + ITEMS_PER_PAGE
   );
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-    document
-      .querySelector(".rounded-md.border")
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-  // ฟังก์ชันเพิ่มสมาชิกใหม่โดยใช้ useMutation
+
+  // Mutations
   const addMemberMutation = useMutation({
     mutationFn: (newMember) => axios.post(`${API_URL}/addmembers`, newMember),
     onSuccess: () => {
       queryClient.invalidateQueries("members");
-      toast.success("เพิ่มสมาชิกสำเร็จ");
+      toast.success("Member added successfully", {
+        className: "bg-emerald-50 border border-emerald-200",
+      });
       setIsModalOpen(false);
       resetForm();
     },
     onError: (error) => {
-      if (error.response?.data?.error === "duplicate_email") {
-        toast.error(
-          error.response.data.message ||
-            "อีเมลนี้ถูกใช้งานแล้ว กรุณาใช้อีเมลอื่น"
-        );
-      } else {
-        toast.error(
-          error.response?.data?.message || "เกิดข้อผิดพลาดในการเพิ่มสมาชิก"
-        );
-      }
+      toast.error(error.response?.data?.message || "Error adding member", {
+        className: "bg-red-50 border border-red-200",
+      });
     },
   });
-  // ฟังก์ชันแก้ไขข้อมูลสมาชิกโดยใช้ useMutation
+
   const updateMemberMutation = useMutation({
     mutationFn: (updatedMember) =>
       axios.put(`${API_URL}/updatemembers/${updatedMember.SSN}`, updatedMember),
     onSuccess: (data) => {
-      queryClient.setQueryData(["members"], (oldData) => {
-        return oldData.map((member) =>
-          member.SSN === data.data.updatedMember.SSN
-            ? data.data.updatedMember
-            : member
-        );
+      queryClient.invalidateQueries("members");
+      toast.success("Member updated successfully", {
+        className: "bg-emerald-50 border border-emerald-200",
       });
-      toast.success("แก้ไขข้อมูลสมาชิกสำเร็จ");
       setIsModalOpen(false);
       setEditingMember(null);
       resetForm();
     },
     onError: (error) => {
-      console.error("Error updating member:", error);
-      toast.error(
-        "ไม่สามารถแก้ไขข้อมูลสมาชิกได้: " +
-          (error.response?.data?.error || error.message)
-      );
+      toast.error(error.response?.data?.message || "Error updating member", {
+        className: "bg-red-50 border border-red-200",
+      });
     },
   });
-  // จัดการการเปลี่ยนแปลงข้อมูลในฟอร์ม
+
+  // Event handlers
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    document
+      .querySelector(".member-table")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [name]: value,
-    });
+    }));
   };
-  // ฟังก์ชัน submit ฟอร์มเพื่อตรวจสอบว่าเป็นการเพิ่มหรือแก้ไข
+
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    // Email validation
-    const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-    if (!emailRegex.test(formData.EMAIL)) {
-      toast.error("กรุณาใส่อีเมลที่ถูกต้อง เช่น example@email.com");
-      return;
-    }
+    if (!validateForm()) return;
 
     const processedData = {
       ...formData,
@@ -225,16 +231,24 @@ const MembersSection = () => {
       addMemberMutation.mutate(processedData);
     }
   };
-  // ฟังก์ชันเริ่มการแก้ไขสมาชิกที่ระบุ
+
+  const validateForm = () => {
+    const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+    if (!emailRegex.test(formData.EMAIL)) {
+      toast.error("Please enter a valid email address");
+      return false;
+    }
+    return true;
+  };
+
   const handleEditClick = (member) => {
     setEditingMember(member);
     setFormData({ ...member, PW: "" });
     setIsModalOpen(true);
   };
-  // ฟังก์ชันรีเซ็ตฟอร์มกลับไปเป็นค่าเริ่มต้น
+
   const resetForm = () => {
     setFormData({
-      SSN: "",
       FNAME: "",
       LNAME: "",
       EMAIL: "",
@@ -244,11 +258,25 @@ const MembersSection = () => {
       STUEMP: "",
     });
   };
-  // แสดงข้อความระหว่างโหลดข้อมูลหรือเกิดข้อผิดพลาด
-  if (isLoading) return <div>กำลังโหลด...</div>;
-  if (error) return <div>เกิดข้อผิดพลาด: {error.message}</div>;
-  // กำหนดการแสดงผลตารางโดยมีอนิเมชั่น
-  const tableVariants = {
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[600px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-[600px] text-red-600">
+        Error: {error.message}
+      </div>
+    );
+  }
+
+  // Animation variants
+  const containerVariants = {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
@@ -257,7 +285,8 @@ const MembersSection = () => {
       },
     },
   };
-  const rowVariants = {
+
+  const itemVariants = {
     hidden: { opacity: 0, y: 20 },
     show: {
       opacity: 1,
@@ -268,367 +297,340 @@ const MembersSection = () => {
         damping: 12,
       },
     },
-    exit: {
-      opacity: 0,
-      x: -20,
-      transition: {
-        duration: 0.2,
-      },
-    },
   };
-  const cardVariants = {
-    hidden: { opacity: 0, scale: 0.95 },
-    show: {
-      opacity: 1,
-      scale: 1,
-      transition: {
-        duration: 0.3,
-        ease: "easeOut",
-      },
-    },
-  };
+
   return (
-    <motion.div initial="hidden" animate="show" variants={cardVariants}>
-      <Card className="w-full">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <CardTitle className="text-2xl font-bold">จัดการสมาชิก</CardTitle>
-          </motion.div>
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Button
-              onClick={() => {
-                setEditingMember(null);
-                resetForm();
-                setIsModalOpen(true);
-              }}
-              variant="outline"
-              className="transition-all duration-300 hover:shadow-lg"
-            >
-              <Plus className="mr-2 h-4 w-4" /> เพิ่มสมาชิก
-            </Button>
-          </motion.div>
+    <motion.div
+      initial="hidden"
+      animate="show"
+      variants={containerVariants}
+      className="p-6 space-y-6"
+    >
+      <Card className="backdrop-blur-sm bg-white/90 border-none shadow-xl">
+        <CardHeader className="border-b border-gray-100 pb-6">
+          <div className="flex items-center justify-between">
+            <motion.div variants={itemVariants}>
+              <CardTitle className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+                Member Management
+              </CardTitle>
+            </motion.div>
+            <motion.div variants={itemVariants}>
+              <Button
+                onClick={() => {
+                  setEditingMember(null);
+                  resetForm();
+                  setIsModalOpen(true);
+                }}
+                className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                <Plus className="mr-2 h-4 w-4" /> Add Member
+              </Button>
+            </motion.div>
+          </div>
         </CardHeader>
-        <CardContent>
+
+        <CardContent className="pt-6">
           <motion.div
-            className="rounded-md border min-h-[600px] flex flex-col"
-            variants={cardVariants}
+            variants={itemVariants}
+            className="flex items-center space-x-4 mb-6"
           >
-            <motion.div
-              className="flex items-center space-x-2 mb-4 px-4 pt-4"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <Search className="text-gray-400" />
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <Input
                 type="text"
-                placeholder="ค้นหาสมาชิก..."
+                placeholder="Search members..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex-grow transition-all duration-300 focus:ring-2 focus:ring-blue-500"
+                className="pl-10 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500 transition-all duration-300"
               />
-            </motion.div>
-            <div className="flex-grow">
-              <Table className="border">
-                <TableHeader>
-                  <TableRow className="border-b">
-                    <TableHead className="border-r w-[100px]">ID</TableHead>
-                    <TableHead className="border-r w-[150px]">ชื่อ</TableHead>
-                    <TableHead className="border-r w-[150px]">
-                      นามสกุล
-                    </TableHead>
-                    <TableHead className="border-r w-[200px]">Email</TableHead>
-                    <TableHead className="border-r w-[150px]">แผนก</TableHead>
-                    <TableHead className="border-r w-[150px]">
-                      ตำแหน่ง
-                    </TableHead>
-                    <TableHead className="border-r w-[150px]">สถานะ</TableHead>
-                    <TableHead className="w-[100px]">การจัดการ</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <AnimatePresence mode="wait">
-                  <motion.tbody
-                    variants={tableVariants}
-                    initial="hidden"
-                    animate="show"
-                    exit="exit"
-                  >
-                    {paginatedMembers.length === 0 ? (
-                      <motion.tr variants={rowVariants}>
-                        <TableCell
-                          colSpan={8}
-                          className="h-[400px] text-center border-r"
-                        >
-                          ไม่พบข้อมูล
-                        </TableCell>
-                      </motion.tr>
-                    ) : (
-                      <>
-                        {paginatedMembers.map((member) => (
-                          <motion.tr
-                            key={member.SSN}
-                            variants={rowVariants}
-                            initial="hidden"
-                            animate="show"
-                            exit="exit"
-                            className="hover:bg-gray-50 transition-colors duration-200 border-b"
-                          >
-                            <TableCell className="border-r">
-                              {formatID(member.SSN)}
-                            </TableCell>
-                            <TableCell className="border-r">
-                              {member.FNAME}
-                            </TableCell>
-                            <TableCell className="border-r">
-                              {member.LNAME}
-                            </TableCell>
-                            <TableCell className="border-r">
-                              {member.EMAIL}
-                            </TableCell>
-                            <TableCell className="border-r">
-                              {member.DNAME}
-                            </TableCell>
-                            <TableCell className="border-r">
-                              {member.PNAME}
-                            </TableCell>
-                            <TableCell className="border-r">
-                              <motion.div
-                                className="w-[130px]"
-                                whileHover={{ scale: 1.05 }}
-                                transition={{ type: "spring", stiffness: 300 }}
-                              >
-                                <span
-                                  className={`inline-block w-full text-center px-2 py-1 rounded-full text-xs font-medium ${
-                                    statusColors[member.STUEMP]
-                                  } transition-all duration-300`}
-                                >
-                                  {statusMap[member.STUEMP]}
-                                </span>
-                              </motion.div>
-                            </TableCell>
-                            <TableCell>
-                              <motion.div whileHover={{ scale: 1.1 }}>
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      className="h-8 w-8 p-0 transition-all duration-300"
-                                    >
-                                      <span className="sr-only">Open menu</span>
-                                      <MoreVertical className="h-4 w-4" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
-                                    <DropdownMenuItem
-                                      onClick={() => handleEditClick(member)}
-                                      className="transition-colors duration-200 hover:bg-blue-50"
-                                    >
-                                      <Edit className="mr-2 h-4 w-4" /> แก้ไข
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              </motion.div>
-                            </TableCell>
-                          </motion.tr>
-                        ))}
-                      </>
-                    )}
-                  </motion.tbody>
-                </AnimatePresence>
-              </Table>
             </div>
-            <motion.div
-              className="flex items-center justify-between px-4 py-4 border-t"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <div className="text-sm text-gray-700">
-                แสดง {startIndex + 1} ถึง{" "}
-                {Math.min(startIndex + ITEMS_PER_PAGE, filteredMembers.length)}{" "}
-                จาก {filteredMembers.length} รายการ
-              </div>
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="h-8 w-8 p-0"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                {[...Array(totalPages)].map((_, i) => (
+          </motion.div>
+
+          <motion.div variants={itemVariants} className="member-table overflow-hidden rounded-lg border border-gray-200 bg-white">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-gray-50">
+                  <TableHead className="font-semibold text-gray-600">ID</TableHead>
+                  <TableHead className="font-semibold text-gray-600">Name</TableHead>
+                  <TableHead className="font-semibold text-gray-600">Email</TableHead>
+                  <TableHead className="font-semibold text-gray-600">Department</TableHead>
+                  <TableHead className="font-semibold text-gray-600">Position</TableHead>
+                  <TableHead className="font-semibold text-gray-600">Status</TableHead>
+                  <TableHead className="font-semibold text-gray-600">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                <AnimatePresence mode="wait">
+                  {paginatedMembers.map((member) => (
+                    <motion.tr
+                      key={member.SSN}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.3 }}
+                      className="hover:bg-gray-50/50 transition-colors duration-200"
+                    >
+                      <TableCell className="font-medium">{formatID(member.SSN)}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span className="font-medium text-gray-900">{member.FNAME}</span>
+                          <span className="text-sm text-gray-500">{member.LNAME}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-gray-600">{member.EMAIL}</TableCell>
+                      <TableCell>{member.DNAME}</TableCell>
+                      <TableCell>{member.PNAME}</TableCell>
+                      <TableCell>
+                        <span
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-sm ${
+                            statusStyles[member.STUEMP].bg
+                          } ${statusStyles[member.STUEMP].text} ${
+                            statusStyles[member.STUEMP].border
+                          } border`}
+                        >
+                          <span className="w-1.5 h-1.5 rounded-full bg-current mr-2"></span>
+                          {statusMap[member.STUEMP]}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              className="h-8 w-8 p-0 hover:bg-gray-100 transition-colors duration-200"
+                            >
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-32">
+                            <DropdownMenuItem
+                              onClick={() => handleEditClick(member)}
+                              className="cursor-pointer"
+                            >
+                              <Edit className="mr-2 h-4 w-4" />
+                              Edit
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </motion.tr>
+                  ))}
+                </AnimatePresence>
+              </TableBody>
+            </Table>
+
+            {/* Pagination */}
+            <div className="border-t border-gray-200 px-4 py-4 sm:px-6">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-700">
+                  Showing <span className="font-medium">{startIndex + 1}</span> to{" "}
+                  <span className="font-medium">
+                    {Math.min(startIndex + ITEMS_PER_PAGE, filteredMembers.length)}
+                  </span>{" "}
+                  of <span className="font-medium">{filteredMembers.length}</span>{" "}
+                  results
+                </div>
+                <div className="flex space-x-2">
                   <Button
-                    key={i + 1}
-                    variant={currentPage === i + 1 ? "default" : "outline"}
+                    variant="outline"
                     size="sm"
-                    onClick={() => handlePageChange(i + 1)}
-                    className={`h-8 w-8 p-0 ${
-                      currentPage === i + 1
-                        ? "bg-blue-600 text-white hover:bg-blue-700"
-                        : ""
-                    }`}
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="h-8 w-8 p-0"
                   >
-                    {i + 1}
+                    <ChevronLeft className="h-4 w-4" />
                   </Button>
-                ))}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="h-8 w-8 p-0"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
+                  {[...Array(totalPages)].map((_, i) => (
+                    <Button
+                      key={i + 1}
+                      variant={currentPage === i + 1 ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => handlePageChange(i + 1)}
+                      className={`h-8 w-8 p-0 ${
+                        currentPage === i + 1
+                          ? "bg-emerald-600 hover:bg-emerald-700"
+                          : ""
+                      }`}
+                    >
+                      {i + 1}
+                    </Button>
+                  ))}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="h-8 w-8 p-0"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
-            </motion.div>
+            </div>
           </motion.div>
         </CardContent>
-        <AnimatePresence>
-          {isModalOpen && (
-            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ type: "spring", duration: 0.5 }}
-              >
-                <DialogContent className="transition-all duration-300">
-                  <DialogHeader>
-                    <DialogTitle>
-                      {editingMember ? "แก้ไขสมาชิก" : "เพิ่มสมาชิก"}
-                    </DialogTitle>
-                  </DialogHeader>
-                  <form onSubmit={handleSubmit}>
-                    {[
-                      "FNAME",
-                      "LNAME",
-                      "EMAIL",
-                      "PW",
-                      "DNO",
-                      "PNO",
-                      "STUEMP",
-                    ].map((key) => (
-                      <div key={key} className="mb-4">
-                        <Label htmlFor={key}>
-                          {key === "FNAME"
-                            ? "ชื่อ"
-                            : key === "LNAME"
-                            ? "นามสกุล"
-                            : key === "EMAIL"
-                            ? "Email"
-                            : key === "PW"
-                            ? "รหัสผ่าน"
-                            : key === "DNO"
-                            ? "แผนก"
-                            : key === "PNO"
-                            ? "ตำแหน่ง"
-                            : key === "STUEMP"
-                            ? "สถานะ"
-                            : key}
-                        </Label>
-                        {key === "DNO" ? (
-                          <Select
-                            value={formData.DNO}
-                            onValueChange={(value) =>
-                              handleChange({ target: { name: "DNO", value } })
-                            }
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="เลือกแผนก" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {departments.map((dept) => (
-                                <SelectItem
-                                  key={dept.DNUMBER}
-                                  value={dept.DNUMBER.toString()}
-                                >
-                                  {dept.DNAME}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        ) : key === "PNO" ? (
-                          <Select
-                            value={formData.PNO}
-                            onValueChange={(value) =>
-                              handleChange({ target: { name: "PNO", value } })
-                            }
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="เลือกตำแหน่ง" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {positions.map((pos) => (
-                                <SelectItem
-                                  key={pos.PNUMBER}
-                                  value={pos.PNUMBER.toString()}
-                                >
-                                  {pos.PNAME}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        ) : key === "STUEMP" ? (
-                          <Select
-                            value={formData.STUEMP}
-                            onValueChange={(value) =>
-                              handleChange({
-                                target: { name: "STUEMP", value },
-                              })
-                            }
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="เลือกสถานะ" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {statusEmps.map((status) => (
-                                <SelectItem
-                                  key={status.STATUSEMPID}
-                                  value={status.STATUSEMPID.toString()}
-                                >
-                                  {status.STATUSEMPNAME}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          <Input
-                            id={key}
-                            name={key}
-                            value={formData[key]}
-                            onChange={handleChange}
-                            required={key !== "PW" || !editingMember}
-                            type={key === "PW" ? "password" : "text"}
-                            disabled={key === "SSN" && editingMember}
-                          />
-                        )}
-                      </div>
-                    ))}
-                    <div className="flex justify-end space-x-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setIsModalOpen(false)}
-                      >
-                        ยกเลิก
-                      </Button>
-                      <Button type="submit">บันทึก</Button>
-                    </div>
-                  </form>
-                </DialogContent>
-              </motion.div>
-            </Dialog>
-          )}
-        </AnimatePresence>
       </Card>
+
+      {/* Add/Edit Member Modal */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle className="text-2xl font-bold">
+                  {editingMember ? "Edit Member" : "Add New Member"}
+                </DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="col-span-1">
+                    <Label htmlFor="FNAME">First Name</Label>
+                    <Input
+                      id="FNAME"
+                      name="FNAME"
+                      value={formData.FNAME}
+                      onChange={handleChange}
+                      className="mt-1"
+                      required
+                    />
+                  </div>
+                  <div className="col-span-1">
+                    <Label htmlFor="LNAME">Last Name</Label>
+                    <Input
+                      id="LNAME"
+                      name="LNAME"
+                      value={formData.LNAME}
+                      onChange={handleChange}
+                      className="mt-1"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="EMAIL">Email</Label>
+                  <Input
+                    id="EMAIL"
+                    name="EMAIL"
+                    value={formData.EMAIL}
+                    onChange={handleChange}
+                    type="email"
+                    className="mt-1"
+                    required
+                  />
+                </div>
+
+                {!editingMember && (
+                  <div>
+                    <Label htmlFor="PW">Password</Label>
+                    <Input
+                      id="PW"
+                      name="PW"
+                      value={formData.PW}
+                      onChange={handleChange}
+                      type="password"
+                      className="mt-1"
+                      required
+                    />
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="col-span-1">
+                    <Label htmlFor="DNO">Department</Label>
+                    <Select
+                      value={formData.DNO}
+                      onValueChange={(value) =>
+                        handleChange({ target: { name: "DNO", value } })
+                      }
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Select department" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {departments.map((dept) => (
+                          <SelectItem
+                            key={dept.DNUMBER}
+                            value={dept.DNUMBER.toString()}
+                          >
+                            {dept.DNAME}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="col-span-1">
+                    <Label htmlFor="PNO">Position</Label>
+                    <Select
+                      value={formData.PNO}
+                      onValueChange={(value) =>
+                        handleChange({ target: { name: "PNO", value } })
+                      }
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Select position" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {positions.map((pos) => (
+                          <SelectItem
+                            key={pos.PNUMBER}
+                            value={pos.PNUMBER.toString()}
+                          >
+                            {pos.PNAME}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="STUEMP">Status</Label>
+                  <Select
+                    value={formData.STUEMP}
+                    onValueChange={(value) =>
+                      handleChange({ target: { name: "STUEMP", value } })
+                    }
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {statusEmps.map((status) => (
+                        <SelectItem
+                          key={status.STATUSEMPID}
+                          value={status.STATUSEMPID.toString()}
+                        >
+                          {status.STATUSEMPNAME}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex justify-end space-x-3 pt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsModalOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                  >
+                    {editingMember ? "Update" : "Add"} Member
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };
+
 export default MembersSection;
