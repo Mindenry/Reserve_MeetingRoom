@@ -6,18 +6,36 @@ import { Search, MoreVertical, Unlock, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 const containerVariants = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1
-    }
-  }
+      staggerChildren: 0.1,
+    },
+  },
 };
 
 const itemVariants = {
@@ -27,9 +45,9 @@ const itemVariants = {
     y: 0,
     transition: {
       duration: 0.4,
-      ease: "easeOut"
-    }
-  }
+      ease: "easeOut",
+    },
+  },
 };
 
 const BlacklistSection = () => {
@@ -54,31 +72,58 @@ const BlacklistSection = () => {
 
   const handleUnlockUser = async () => {
     try {
-      const response = await axios.post(`http://localhost:8080/unlock-employee/${selectedUser.ESSN}`);
+      const response = await axios.post(
+        `http://localhost:8080/unlock-employee/${selectedUser.ESSN}`
+      );
       if (response.data.success) {
         toast.success(
           <div className="flex items-start space-x-4 p-2">
             <div className="flex-shrink-0 bg-green-100 rounded-full p-2">
-              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg
+                className="w-6 h-6 text-green-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
             </div>
             <div className="flex-1 flex flex-col gap-1">
-              <div className="font-semibold text-green-800 text-base">ปลดล็อคบัญชีดำสำเร็จ</div>
+              <div className="font-semibold text-green-800 text-base">
+                ปลดล็อคบัญชีดำสำเร็จ
+              </div>
               <div className="space-y-1">
                 <div className="flex items-center text-sm text-gray-600">
-                  <svg className="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  <svg
+                    className="w-4 h-4 mr-2 text-green-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
                   </svg>
                   <span>รหัสพนักงาน: </span>
-                  <span className="ml-1 font-medium text-green-700">{selectedUser?.ESSN}</span>
+                  <span className="ml-1 font-medium text-green-700">
+                    {selectedUser?.ESSN}
+                  </span>
                 </div>
               </div>
             </div>
           </div>,
           {
             duration: 3000,
-            className: "bg-white border-l-4 border-l-green-500 shadow-lg rounded-lg",
+            className:
+              "bg-white border-l-4 border-l-green-500 shadow-lg rounded-lg",
             style: {
               background: "linear-gradient(to right, #f0fdf4, white)",
             },
@@ -102,11 +147,13 @@ const BlacklistSection = () => {
     }
   };
 
-  const filteredUsers = blacklistedUsers.filter((user) =>
-    Object.values(user).some((value) =>
-      value?.toString().toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredUsers = blacklistedUsers
+    .filter((user) =>
+      Object.values(user).some((value) =>
+        value?.toString().toLowerCase().includes(searchTerm.toLowerCase())
+      )
     )
-  ).sort((a, b) => a.LOCKEMPID - b.LOCKEMPID);
+    .sort((a, b) => a.LOCKEMPID - b.LOCKEMPID);
 
   return (
     <motion.div
@@ -120,13 +167,16 @@ const BlacklistSection = () => {
           <div className="flex items-center justify-between">
             <motion.div variants={itemVariants}>
               <CardTitle className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-                จัดการบัญชีดำ
+                Manage Blacklist
               </CardTitle>
             </motion.div>
           </div>
         </CardHeader>
         <CardContent className="pt-6">
-          <motion.div variants={itemVariants} className="flex items-center space-x-4 mb-6">
+          <motion.div
+            variants={itemVariants}
+            className="flex items-center space-x-4 mb-6"
+          >
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <Input
@@ -138,14 +188,25 @@ const BlacklistSection = () => {
               />
             </div>
           </motion.div>
-          <motion.div variants={itemVariants} className="booking-table overflow-hidden rounded-lg border border-gray-200 bg-white">
+          <motion.div
+            variants={itemVariants}
+            className="booking-table overflow-hidden rounded-lg border border-gray-200 bg-white"
+          >
             <Table>
               <TableHeader>
                 <TableRow className="bg-gray-50">
-                  <TableHead className="font-semibold text-gray-600">รหัสบัญชีดำ</TableHead>
-                  <TableHead className="font-semibold text-gray-600">รหัสพนักงาน</TableHead>
-                  <TableHead className="font-semibold text-gray-600">วันที่ถูกแบน</TableHead>
-                  <TableHead className="font-semibold text-gray-600">การจัดการ</TableHead>
+                  <TableHead className="font-semibold text-gray-600">
+                    รหัสบัญชีดำ
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-600">
+                    รหัสพนักงาน
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-600">
+                    วันที่ถูกแบน
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-600">
+                    การจัดการ
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -173,7 +234,9 @@ const BlacklistSection = () => {
                         transition={{ duration: 0.3 }}
                         className="hover:bg-gray-50/50 transition-colors duration-200"
                       >
-                        <TableCell className="font-medium">{user.LOCKEMPID}</TableCell>
+                        <TableCell className="font-medium">
+                          {user.LOCKEMPID}
+                        </TableCell>
                         <TableCell>{user.ESSN}</TableCell>
                         <TableCell>
                           {new Date(user.LOCKDATE).toLocaleDateString("th-TH")}

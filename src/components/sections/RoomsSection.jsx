@@ -74,13 +74,13 @@ const containerVariants = {
     y: 0,
     transition: {
       duration: 0.4,
-      staggerChildren: 0.1
-    }
-  }
+      staggerChildren: 0.1,
+    },
+  },
 };
 const itemVariants = {
   hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0 }
+  show: { opacity: 1, y: 0 },
 };
 export const RoomsSection = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -132,7 +132,9 @@ export const RoomsSection = () => {
     const fetchFloors = async () => {
       if (formData.BDNUM) {
         try {
-          const response = await axios.get(`${API_URL}/floors?buildingId=${formData.BDNUM}`);
+          const response = await axios.get(
+            `${API_URL}/floors?buildingId=${formData.BDNUM}`
+          );
           setFloors(response.data);
         } catch (error) {
           console.error("Error fetching floors:", error);
@@ -146,11 +148,13 @@ export const RoomsSection = () => {
   }, [formData.BDNUM]);
   useEffect(() => {
     if (formData.BDNUM) {
-      setFormData(prev => ({ ...prev, FLNUM: "" }));
+      setFormData((prev) => ({ ...prev, FLNUM: "" }));
     }
   }, [formData.BDNUM]);
   const sortedRooms = useMemo(() => {
-    return [...rooms].sort((a, b) => parseInt(a.CFRNUMBER) - parseInt(b.CFRNUMBER));
+    return [...rooms].sort(
+      (a, b) => parseInt(a.CFRNUMBER) - parseInt(b.CFRNUMBER)
+    );
   }, [rooms]);
   const filteredRooms = useMemo(() => {
     return sortedRooms.filter((room) =>
@@ -161,10 +165,15 @@ export const RoomsSection = () => {
   }, [sortedRooms, searchTerm]);
   const totalPages = Math.ceil(filteredRooms.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const paginatedRooms = filteredRooms.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  const paginatedRooms = filteredRooms.slice(
+    startIndex,
+    startIndex + ITEMS_PER_PAGE
+  );
   const handlePageChange = (page) => {
     setCurrentPage(page);
-    document.querySelector(".rounded-md.border")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    document
+      .querySelector(".rounded-md.border")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
   const addRoomMutation = useMutation({
     mutationFn: (newRoom) => axios.post(`${API_URL}/addroom`, newRoom),
@@ -191,7 +200,8 @@ export const RoomsSection = () => {
     },
   });
   const deleteRoomMutation = useMutation({
-    mutationFn: (CFRNUMBER) => axios.delete(`${API_URL}/deleteroom/${CFRNUMBER}`),
+    mutationFn: (CFRNUMBER) =>
+      axios.delete(`${API_URL}/deleteroom/${CFRNUMBER}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["rooms"] });
       toast.success("ลบห้องประชุมสำเร็จ");
@@ -257,18 +267,18 @@ export const RoomsSection = () => {
     1: {
       bg: "bg-emerald-50",
       text: "text-emerald-700",
-      border: "border-emerald-200"
+      border: "border-emerald-200",
     },
     2: {
       bg: "bg-amber-50",
       text: "text-amber-700",
-      border: "border-amber-200"
+      border: "border-amber-200",
     },
     3: {
       bg: "bg-rose-50",
       text: "text-rose-700",
-      border: "border-rose-200"
-    }
+      border: "border-rose-200",
+    },
   };
   return (
     <motion.div
@@ -311,21 +321,37 @@ export const RoomsSection = () => {
               />
             </div>
           </motion.div>
-          <motion.div 
-            variants={itemVariants} 
+          <motion.div
+            variants={itemVariants}
             className="overflow-hidden rounded-lg border border-gray-200 bg-white"
           >
             <Table>
               <TableHeader>
                 <TableRow className="bg-gray-50">
-                  <TableHead className="font-semibold text-gray-600">ID</TableHead>
-                  <TableHead className="font-semibold text-gray-600">Name</TableHead>
-                  <TableHead className="font-semibold text-gray-600">Building</TableHead>
-                  <TableHead className="font-semibold text-gray-600">Floor</TableHead>
-                  <TableHead className="font-semibold text-gray-600">Type</TableHead>
-                  <TableHead className="font-semibold text-gray-600">Status</TableHead>
-                  <TableHead className="font-semibold text-gray-600">Capacity</TableHead>
-                  <TableHead className="font-semibold text-gray-600">Actions</TableHead>
+                  <TableHead className="font-semibold text-gray-600">
+                    รหัส
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-600">
+                    ชื่อ
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-600">
+                    อาคาร
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-600">
+                    ชั้น
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-600">
+                    ประเภท
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-600">
+                    สถานะ
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-600">
+                    ความจุ
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-600">
+                    การจัดการ
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -339,11 +365,17 @@ export const RoomsSection = () => {
                       transition={{ duration: 0.3 }}
                       className="hover:bg-gray-50/50 transition-colors duration-200"
                     >
-                      <TableCell className="font-medium">{formatID(room.CFRNUMBER)}</TableCell>
-                      <TableCell>
-                        <span className="font-medium text-gray-900">{room.CFRNAME}</span>
+                      <TableCell className="font-medium">
+                        {formatID(room.CFRNUMBER)}
                       </TableCell>
-                      <TableCell className="text-gray-600">{room.BDNAME}</TableCell>
+                      <TableCell>
+                        <span className="font-medium text-gray-900">
+                          {room.CFRNAME}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-gray-600">
+                        {room.BDNAME}
+                      </TableCell>
                       <TableCell>{room.FLNAME}</TableCell>
                       <TableCell>{room.RTNAME}</TableCell>
                       <TableCell>
@@ -358,7 +390,9 @@ export const RoomsSection = () => {
                           {statusMap[room.STUROOM]}
                         </span>
                       </TableCell>
-                      <TableCell className="text-right">{room.CAPACITY} seats</TableCell>
+                      <TableCell className="text-right">
+                        {room.CAPACITY} seats
+                      </TableCell>
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -402,9 +436,13 @@ export const RoomsSection = () => {
             <div className="border-t border-gray-200 px-4 py-4 sm:px-6">
               <div className="flex items-center justify-between">
                 <div className="text-sm text-gray-700">
-                  Showing <span className="font-medium">{startIndex + 1}</span> to{" "}
+                  Showing <span className="font-medium">{startIndex + 1}</span>{" "}
+                  to{" "}
                   <span className="font-medium">
-                    {Math.min(startIndex + ITEMS_PER_PAGE, filteredRooms.length)}
+                    {Math.min(
+                      startIndex + ITEMS_PER_PAGE,
+                      filteredRooms.length
+                    )}
                   </span>{" "}
                   of <span className="font-medium">{filteredRooms.length}</span>{" "}
                   results
@@ -600,7 +638,9 @@ export const RoomsSection = () => {
         {dialogState.type === "delete" && (
           <Dialog
             open={dialogState.type === "delete"}
-            onOpenChange={() => setDialogState({ type: null, isOpen: false, data: null })}
+            onOpenChange={() =>
+              setDialogState({ type: null, isOpen: false, data: null })
+            }
           >
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
@@ -612,14 +652,18 @@ export const RoomsSection = () => {
               <div className="py-4">
                 <p className="text-sm text-gray-600">
                   Are you sure you want to delete room{" "}
-                  <span className="font-medium">{dialogState.data?.CFRNAME}</span>?
-                  This action cannot be undone.
+                  <span className="font-medium">
+                    {dialogState.data?.CFRNAME}
+                  </span>
+                  ? This action cannot be undone.
                 </p>
               </div>
               <DialogFooter>
                 <Button
                   variant="outline"
-                  onClick={() => setDialogState({ type: null, isOpen: false, data: null })}
+                  onClick={() =>
+                    setDialogState({ type: null, isOpen: false, data: null })
+                  }
                 >
                   Cancel
                 </Button>
@@ -641,7 +685,9 @@ export const RoomsSection = () => {
         {dialogState.type === "close" && (
           <Dialog
             open={dialogState.type === "close"}
-            onOpenChange={() => setDialogState({ type: null, isOpen: false, data: null })}
+            onOpenChange={() =>
+              setDialogState({ type: null, isOpen: false, data: null })
+            }
           >
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
@@ -680,7 +726,9 @@ export const RoomsSection = () => {
               <DialogFooter>
                 <Button
                   variant="outline"
-                  onClick={() => setDialogState({ type: null, isOpen: false, data: null })}
+                  onClick={() =>
+                    setDialogState({ type: null, isOpen: false, data: null })
+                  }
                 >
                   Cancel
                 </Button>

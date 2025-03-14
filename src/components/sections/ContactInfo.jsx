@@ -118,8 +118,12 @@ const ContactInfo = () => {
                         <div className="bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full p-4 w-fit mx-auto mb-4">
                           <AlertCircle className="h-8 w-8 text-indigo-500" />
                         </div>
-                        <p className="text-indigo-700 font-medium">ไม่พบรายการที่ค้นหา</p>
-                        <p className="text-indigo-500/70 mt-1">ลองค้นหาด้วยคำค้นอื่น</p>
+                        <p className="text-indigo-700 font-medium">
+                          ไม่พบรายการที่ค้นหา
+                        </p>
+                        <p className="text-indigo-500/70 mt-1">
+                          ลองค้นหาด้วยคำค้นอื่น
+                        </p>
                       </div>
                     ) : (
                       filteredContacts.map((contact, index) => (
@@ -142,29 +146,35 @@ const ContactInfo = () => {
                           >
                             <div className="flex items-start justify-between">
                               <div className="flex items-center space-x-4">
-                                <div className={`rounded-xl p-3 transition-all duration-300 ${
-                                  selectedContact?.CONTEACTID === contact.CONTEACTID
-                                    ? "bg-gradient-to-br from-indigo-200 to-purple-200"
-                                    : "bg-gradient-to-br from-indigo-100 to-purple-100"
-                                }`}>
-                                  <User className={`h-6 w-6 ${
-                                    selectedContact?.CONTEACTID === contact.CONTEACTID
-                                      ? "text-indigo-700"
-                                      : "text-indigo-500"
-                                  }`} />
+                                <div
+                                  className={`rounded-xl p-3 transition-all duration-300 ${
+                                    selectedContact?.CONTEACTID ===
+                                    contact.CONTEACTID
+                                      ? "bg-gradient-to-br from-indigo-200 to-purple-200"
+                                      : "bg-gradient-to-br from-indigo-100 to-purple-100"
+                                  }`}
+                                >
+                                  <User
+                                    className={`h-6 w-6 ${
+                                      selectedContact?.CONTEACTID ===
+                                      contact.CONTEACTID
+                                        ? "text-indigo-700"
+                                        : "text-indigo-500"
+                                    }`}
+                                  />
                                 </div>
                                 <div>
                                   <div className="flex items-center gap-2">
-                                    <p className={`font-medium transition-all duration-300 ${
-                                      selectedContact?.CONTEACTID === contact.CONTEACTID
-                                        ? "text-indigo-700"
-                                        : "text-gray-700"
-                                    }`}>
+                                    <p
+                                      className={`font-medium transition-all duration-300 ${
+                                        selectedContact?.CONTEACTID ===
+                                        contact.CONTEACTID
+                                          ? "text-indigo-700"
+                                          : "text-gray-700"
+                                      }`}
+                                    >
                                       {contact.ESSN}
                                     </p>
-                                    <Badge variant="secondary" className="bg-indigo-50 text-indigo-600 text-xs">
-                                      ใหม่
-                                    </Badge>
                                   </div>
                                   <p className="text-sm text-indigo-500/70 mt-1">
                                     {contact.FNAME} {contact.LNAME}
@@ -198,19 +208,17 @@ const ContactInfo = () => {
                         </div>
                         รายละเอียดการติดต่อ
                       </CardTitle>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="border-indigo-200 text-indigo-600">
-                          <Calendar className="h-3 w-3 mr-1" />
-                          {new Date().toLocaleDateString('th-TH')}
-                        </Badge>
-                      </div>
                     </div>
                   </CardHeader>
                   <CardContent className="p-6">
                     <div className="space-y-6">
-                      <div className={`transition-all duration-500 transform ${
-                        showDetails ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
-                      }`}>
+                      <div
+                        className={`transition-all duration-500 transform ${
+                          showDetails
+                            ? "translate-y-0 opacity-100"
+                            : "translate-y-4 opacity-0"
+                        }`}
+                      >
                         <div className="bg-gradient-to-br from-white to-indigo-50/30 border border-indigo-100 p-6 rounded-xl shadow-sm">
                           <h3 className="font-medium text-indigo-700 mb-4 flex items-center gap-2">
                             <User className="h-4 w-4" />
@@ -218,13 +226,17 @@ const ContactInfo = () => {
                           </h3>
                           <div className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                              <p className="text-sm text-indigo-600/70">รหัสพนักงาน</p>
+                              <p className="text-sm text-indigo-600/70">
+                                รหัสพนักงาน
+                              </p>
                               <p className="font-medium text-gray-900 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 p-3 rounded-xl border border-indigo-100">
                                 {selectedContact.ESSN}
                               </p>
                             </div>
                             <div className="space-y-2">
-                              <p className="text-sm text-indigo-600/70">ชื่อ-นามสกุล</p>
+                              <p className="text-sm text-indigo-600/70">
+                                ชื่อ-นามสกุล
+                              </p>
                               <p className="font-medium text-gray-900 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 p-3 rounded-xl border border-indigo-100">
                                 {selectedContact.FNAME} {selectedContact.LNAME}
                               </p>
@@ -233,9 +245,13 @@ const ContactInfo = () => {
                         </div>
                       </div>
 
-                      <div className={`transition-all duration-500 delay-100 transform ${
-                        showDetails ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
-                      }`}>
+                      <div
+                        className={`transition-all duration-500 delay-100 transform ${
+                          showDetails
+                            ? "translate-y-0 opacity-100"
+                            : "translate-y-4 opacity-0"
+                        }`}
+                      >
                         <div className="bg-gradient-to-br from-white to-indigo-50/30 border border-indigo-100 p-6 rounded-xl shadow-sm">
                           <h3 className="font-medium text-indigo-700 mb-4 flex items-center gap-2">
                             <MessageSquare className="h-4 w-4" />

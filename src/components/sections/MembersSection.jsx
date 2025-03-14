@@ -26,7 +26,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -346,17 +351,34 @@ const MembersSection = () => {
             </div>
           </motion.div>
 
-          <motion.div variants={itemVariants} className="member-table overflow-hidden rounded-lg border border-gray-200 bg-white">
+          <motion.div
+            variants={itemVariants}
+            className="member-table overflow-hidden rounded-lg border border-gray-200 bg-white"
+          >
             <Table>
               <TableHeader>
                 <TableRow className="bg-gray-50">
-                  <TableHead className="font-semibold text-gray-600">ID</TableHead>
-                  <TableHead className="font-semibold text-gray-600">Name</TableHead>
-                  <TableHead className="font-semibold text-gray-600">Email</TableHead>
-                  <TableHead className="font-semibold text-gray-600">Department</TableHead>
-                  <TableHead className="font-semibold text-gray-600">Position</TableHead>
-                  <TableHead className="font-semibold text-gray-600">Status</TableHead>
-                  <TableHead className="font-semibold text-gray-600">Actions</TableHead>
+                  <TableHead className="font-semibold text-gray-600">
+                    รหัส
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-600">
+                    ชื่อ
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-600">
+                    อีเมล
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-600">
+                    แผนก
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-600">
+                    ตำแหน่ง
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-600">
+                    สถานะ
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-600">
+                    การจัดการ
+                  </TableHead>
                 </TableRow>
               </TableHeader>
 
@@ -371,14 +393,22 @@ const MembersSection = () => {
                       transition={{ duration: 0.3 }}
                       className="hover:bg-gray-50/50 transition-colors duration-200"
                     >
-                      <TableCell className="font-medium">{formatID(member.SSN)}</TableCell>
+                      <TableCell className="font-medium">
+                        {formatID(member.SSN)}
+                      </TableCell>
                       <TableCell>
                         <div className="flex flex-col">
-                          <span className="font-medium text-gray-900">{member.FNAME}</span>
-                          <span className="text-sm text-gray-500">{member.LNAME}</span>
+                          <span className="font-medium text-gray-900">
+                            {member.FNAME}
+                          </span>
+                          <span className="text-sm text-gray-500">
+                            {member.LNAME}
+                          </span>
                         </div>
                       </TableCell>
-                      <TableCell className="text-gray-600">{member.EMAIL}</TableCell>
+                      <TableCell className="text-gray-600">
+                        {member.EMAIL}
+                      </TableCell>
                       <TableCell>{member.DNAME}</TableCell>
                       <TableCell>{member.PNAME}</TableCell>
                       <TableCell>
@@ -424,11 +454,16 @@ const MembersSection = () => {
             <div className="border-t border-gray-200 px-4 py-4 sm:px-6">
               <div className="flex items-center justify-between">
                 <div className="text-sm text-gray-700">
-                  Showing <span className="font-medium">{startIndex + 1}</span> to{" "}
+                  Showing <span className="font-medium">{startIndex + 1}</span>{" "}
+                  to{" "}
                   <span className="font-medium">
-                    {Math.min(startIndex + ITEMS_PER_PAGE, filteredMembers.length)}
+                    {Math.min(
+                      startIndex + ITEMS_PER_PAGE,
+                      filteredMembers.length
+                    )}
                   </span>{" "}
-                  of <span className="font-medium">{filteredMembers.length}</span>{" "}
+                  of{" "}
+                  <span className="font-medium">{filteredMembers.length}</span>{" "}
                   results
                 </div>
                 <div className="flex space-x-2">

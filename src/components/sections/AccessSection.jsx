@@ -1,13 +1,38 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Search, MoreVertical, Info, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Plus,
+  Search,
+  MoreVertical,
+  Info,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
 import axios from "axios";
 
@@ -18,9 +43,9 @@ const containerVariants = {
   show: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1
-    }
-  }
+      staggerChildren: 0.1,
+    },
+  },
 };
 
 const itemVariants = {
@@ -30,9 +55,9 @@ const itemVariants = {
     y: 0,
     transition: {
       duration: 0.4,
-      ease: "easeOut"
-    }
-  }
+      ease: "easeOut",
+    },
+  },
 };
 
 const AccessSection = () => {
@@ -90,10 +115,13 @@ const AccessSection = () => {
 
   const handleShowCancelReason = async (booking) => {
     try {
-      const response = await fetch(`http://localhost:8080/cancel-reason/${booking.RESERVERID}`);
+      const response = await fetch(
+        `http://localhost:8080/cancel-reason/${booking.RESERVERID}`
+      );
       if (!response.ok) throw new Error("Failed to fetch cancel details");
       const data = await response.json();
-      if (!data.success) throw new Error(data.error || "Failed to fetch cancel details");
+      if (!data.success)
+        throw new Error(data.error || "Failed to fetch cancel details");
       setSelectedCancelDetails({
         reason: data.reason || "ไม่พบข้อมูลเหตุผลการยกเลิก",
       });
@@ -243,7 +271,7 @@ const AccessSection = () => {
           <div className="flex items-center justify-between">
             <motion.div variants={itemVariants}>
               <CardTitle className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-                จัดการจองห้อง
+                Manage Room Reservations
               </CardTitle>
             </motion.div>
           </div>
@@ -264,19 +292,40 @@ const AccessSection = () => {
               />
             </div>
           </motion.div>
-          <motion.div variants={itemVariants} className="booking-table overflow-hidden rounded-lg border border-gray-200 bg-white">
+          <motion.div
+            variants={itemVariants}
+            className="booking-table overflow-hidden rounded-lg border border-gray-200 bg-white"
+          >
             <Table>
               <TableHeader>
                 <TableRow className="bg-gray-50">
-                  <TableHead className="font-semibold text-gray-600">รหัสการจอง</TableHead>
-                  <TableHead className="font-semibold text-gray-600">รหัสพนักงาน</TableHead>
-                  <TableHead className="font-semibold text-gray-600">ชื่อห้อง</TableHead>
-                  <TableHead className="font-semibold text-gray-600">วันที่เริ่มต้น</TableHead>
-                  <TableHead className="font-semibold text-gray-600">เวลาเริ่มต้น</TableHead>
-                  <TableHead className="font-semibold text-gray-600">เวลาสิ้นสุด</TableHead>
-                  <TableHead className="font-semibold text-gray-600">เวลาเข้าใช้งาน</TableHead>
-                  <TableHead className="font-semibold text-gray-600">สถานะ</TableHead>
-                  <TableHead className="font-semibold text-gray-600">การจัดการ</TableHead>
+                  <TableHead className="font-semibold text-gray-600">
+                    รหัสการจอง
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-600">
+                    รหัสพนักงาน
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-600">
+                    ชื่อห้อง
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-600">
+                    วันที่เริ่มต้น
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-600">
+                    เวลาเริ่มต้น
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-600">
+                    เวลาสิ้นสุด
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-600">
+                    เวลาเข้าใช้งาน
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-600">
+                    สถานะ
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-600">
+                    การจัดการ
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -304,30 +353,41 @@ const AccessSection = () => {
                         transition={{ duration: 0.3 }}
                         className="hover:bg-gray-50/50 transition-colors duration-200"
                       >
-                        <TableCell className="font-medium">{record.RESERVERID}</TableCell>
+                        <TableCell className="font-medium">
+                          {record.RESERVERID}
+                        </TableCell>
                         <TableCell>{record.ESSN}</TableCell>
                         <TableCell>{record.CFRNAME}</TableCell>
                         <TableCell>
                           {new Date(record.BDATE).toLocaleDateString("th-TH")}
                         </TableCell>
                         <TableCell>
-                          {new Date(record.STARTTIME).toLocaleTimeString("th-TH", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
+                          {new Date(record.STARTTIME).toLocaleTimeString(
+                            "th-TH",
+                            {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            }
+                          )}
                         </TableCell>
                         <TableCell>
-                          {new Date(record.ENDTIME).toLocaleTimeString("th-TH", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
+                          {new Date(record.ENDTIME).toLocaleTimeString(
+                            "th-TH",
+                            {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            }
+                          )}
                         </TableCell>
                         <TableCell>
                           {record.TIME
-                            ? new Date(record.TIME).toLocaleTimeString("th-TH", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })
+                            ? new Date(record.TIME).toLocaleTimeString(
+                                "th-TH",
+                                {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                }
+                              )
                             : "-"}
                         </TableCell>
                         <TableCell>
@@ -346,48 +406,61 @@ const AccessSection = () => {
                               <Button
                                 variant="ghost"
                                 className="h-8 w-8 p-0 hover:bg-gray-100 transition-colors duration-200"
-                                disabled={record.STUBOOKING === 2 || record.STUBOOKING === 3}
+                                disabled={
+                                  record.STUBOOKING === 2 ||
+                                  record.STUBOOKING === 3
+                                }
                               >
                                 <MoreVertical className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
-                            {record.STUBOOKING !== 2 && record.STUBOOKING !== 3 && (
-                              <DropdownMenuContent align="end" className="w-32">
-                                {record.STUBOOKING === 4 && (
-                                  <>
-                                    <DropdownMenuItem
-                                      onClick={() => handleApproveClick(record)}
-                                      className="cursor-pointer"
-                                    >
-                                      อนุมัติ
-                                    </DropdownMenuItem>
+                            {record.STUBOOKING !== 2 &&
+                              record.STUBOOKING !== 3 && (
+                                <DropdownMenuContent
+                                  align="end"
+                                  className="w-32"
+                                >
+                                  {record.STUBOOKING === 4 && (
+                                    <>
+                                      <DropdownMenuItem
+                                        onClick={() =>
+                                          handleApproveClick(record)
+                                        }
+                                        className="cursor-pointer"
+                                      >
+                                        Approve
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem
+                                        onClick={() =>
+                                          handleCancelClick(record)
+                                        }
+                                        className="cursor-pointer text-red-600"
+                                      >
+                                        Cancel
+                                      </DropdownMenuItem>
+                                    </>
+                                  )}
+                                  {record.STUBOOKING === 1 && (
                                     <DropdownMenuItem
                                       onClick={() => handleCancelClick(record)}
                                       className="cursor-pointer text-red-600"
                                     >
-                                      ยกเลิก
+                                      Cancel
                                     </DropdownMenuItem>
-                                  </>
-                                )}
-                                {record.STUBOOKING === 1 && (
-                                  <DropdownMenuItem
-                                    onClick={() => handleCancelClick(record)}
-                                    className="cursor-pointer text-red-600"
-                                  >
-                                    ยกเลิก
-                                  </DropdownMenuItem>
-                                )}
-                                {record.STUBOOKING === 5 && (
-                                  <DropdownMenuItem
-                                    onClick={() => handleShowCancelReason(record)}
-                                    className="cursor-pointer"
-                                  >
-                                    <Info className="h-4 w-4 mr-2" />
-                                    ดูเหตุผลการยกเลิก
-                                  </DropdownMenuItem>
-                                )}
-                              </DropdownMenuContent>
-                            )}
+                                  )}
+                                  {record.STUBOOKING === 5 && (
+                                    <DropdownMenuItem
+                                      onClick={() =>
+                                        handleShowCancelReason(record)
+                                      }
+                                      className="cursor-pointer"
+                                    >
+                                      <Info className="h-4 w-4 mr-2" />
+                                      View Cancellation Reason
+                                    </DropdownMenuItem>
+                                  )}
+                                </DropdownMenuContent>
+                              )}
                           </DropdownMenu>
                         </TableCell>
                       </motion.tr>
@@ -402,9 +475,13 @@ const AccessSection = () => {
                 <div className="text-sm text-gray-700">
                   แสดง <span className="font-medium">{startIndex + 1}</span> ถึง{" "}
                   <span className="font-medium">
-                    {Math.min(startIndex + ITEMS_PER_PAGE, sortedRecords.length)}
+                    {Math.min(
+                      startIndex + ITEMS_PER_PAGE,
+                      sortedRecords.length
+                    )}
                   </span>{" "}
-                  จาก <span className="font-medium">{sortedRecords.length}</span>{" "}
+                  จาก{" "}
+                  <span className="font-medium">{sortedRecords.length}</span>{" "}
                   รายการ
                 </div>
                 <div className="flex space-x-2">
@@ -498,14 +575,14 @@ const AccessSection = () => {
                     onClick={() => setCancelDialogOpen(false)}
                     className="hover:bg-gray-100"
                   >
-                    ยกเลิก
+                    Cancel
                   </Button>
                   <Button
                     variant="destructive"
                     onClick={handleCancelBooking}
                     className="bg-red-600 hover:bg-red-700"
                   >
-                    ยืนยันการยกเลิก
+                    Confirm Cancellation
                   </Button>
                 </div>
               </DialogContent>
@@ -594,9 +671,9 @@ const AccessSection = () => {
                       </svg>
                     </div>
                     <div className="flex flex-col">
-                      <span>ยืนยันการอนุมัติการจอง</span>
+                      <span>Confirm Booking Approval</span>
                       <span className="text-sm font-normal text-green-600 mt-0.5">
-                        กรุณาตรวจสอบข้อมูลก่อนดำเนินการ
+                        Please review the information before proceeding.
                       </span>
                     </div>
                   </DialogTitle>
@@ -741,13 +818,13 @@ const AccessSection = () => {
                     onClick={() => setApproveDialogOpen(false)}
                     className="hover:bg-gray-100 transition-colors duration-200"
                   >
-                    ยกเลิก
+                    Cancel
                   </Button>
                   <Button
                     onClick={handleApproveBooking}
                     className="bg-green-600 hover:bg-green-700 text-white shadow-sm transition-all duration-200 ease-in-out"
                   >
-                    ยืนยันการอนุมัติ
+                    Confirm Approval
                   </Button>
                 </div>
               </DialogContent>
