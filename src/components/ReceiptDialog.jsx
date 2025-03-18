@@ -689,15 +689,7 @@ const ReceiptDialog = ({ isOpen, onClose, booking }) => {
           </div>
         </div>
 
-        <div className="flex justify-center items-center px-6 py-4 bg-gray-50 border-t print:hidden">
-          <Button
-            onClick={handlePrint}
-            className="bg-[#1a237e] hover:bg-[#283593] text-white gap-2"
-          >
-            <Printer className="h-4 w-4" />
-            พิมพ์ใบเสร็จ
-          </Button>
-        </div>
+        
       </DialogContent>
     </Dialog>
   );
