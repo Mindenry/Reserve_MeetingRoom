@@ -13,7 +13,6 @@ const LoginForm = ({ onToggleForm }) => {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  // ฟังก์ชันสำหรับการจัดการการส่งฟอร์ม
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email || !password) {
