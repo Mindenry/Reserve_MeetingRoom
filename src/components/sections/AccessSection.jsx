@@ -66,6 +66,7 @@ const AccessSection = () => {
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [bookingToApprove, setBookingToApprove] = useState(null); // Add this line
   const [cancelReason, setCancelReason] = useState("");
   const [showCancelReason, setShowCancelReason] = useState(false);
   const [selectedCancelDetails, setSelectedCancelDetails] = useState(null);
