@@ -1,8 +1,5 @@
-npm install oracledb
-
-rm -rf node_modules package-lock.json
-npm install
+npm i 
 
 node server.js
 
-ขั้นตอนการรันนะจ๊ะ
+
