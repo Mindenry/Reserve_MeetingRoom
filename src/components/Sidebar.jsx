@@ -11,6 +11,7 @@ import {
   ChevronLeft,
   ChevronRight,
   MessageCircle,
+  UserCircle,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -83,6 +84,13 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
       label: "สิทธิ์การใช้งาน",
       path: "/dashboard/permissions",
     },
+    {
+      mnum: 13,
+      name: "โปรไฟล์",
+      icon: UserCircle,
+      label: "โปรไฟล์",
+      path: "/dashboard/profile",
+    },
   ];
 
   // กรองเมนูตามสิทธิ์การเข้าถึง
@@ -108,12 +116,12 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
   return (
     <TooltipProvider>
       <motion.div
-        className="bg-gradient-to-br from-indigo-900 via-purple-800 to-blue-900 text-white shadow-2xl h-screen transition-all duration-300 ease-in-out overflow-hidden relative rounded-r-3xl"
+        className="bg-background text-foreground shadow-xl h-screen transition-all duration-300 ease-in-out overflow-hidden relative border-r border-border"
         initial={false}
         animate={isCollapsed ? "collapsed" : "expanded"}
         variants={sidebarVariants}
       >
-        <div className="flex justify-between items-center p-4 border-b border-white border-opacity-20">
+        <div className="flex justify-between items-center p-4 border-b border-border">
           <motion.div
             variants={logoVariants}
             initial="collapsed"
@@ -131,7 +139,7 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={toggleSidebar}
-            className="p-2 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition-colors duration-300"
+            className="p-2 rounded-full bg-accent hover:bg-accent transition-colors duration-300"
           >
             {isCollapsed ? (
               <ChevronRight size={24} />
@@ -159,8 +167,8 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
                       <div
                         className={`flex items-center py-3 px-4 rounded-lg mb-2 ${
                           location.pathname === item.path
-                            ? "bg-white bg-opacity-20 shadow-lg"
-                            : "hover:bg-white hover:bg-opacity-10"
+                            ? "bg-accent shadow-sm"
+                            : "hover:bg-accent"
                         } transition-all duration-300 group relative overflow-hidden cursor-pointer`}
                       >
                         <item.icon
@@ -175,7 +183,7 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
                         )}
                         {location.pathname === item.path && (
                           <motion.div
-                            className="absolute left-0 w-1 h-8 bg-gradient-to-b from-pink-500 via-purple-500 to-indigo-500 rounded-r-full"
+                            className="absolute left-0 w-1 h-8 bg-primary rounded-r-full"
                             layoutId="activeIndicator"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}

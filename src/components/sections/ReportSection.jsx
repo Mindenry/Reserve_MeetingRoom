@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
-import { format } from "date-fns";
+import { API_URL } from "@/config";
+import { format, parseISO, isValid } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -84,7 +85,7 @@ const ReportSection = () => {
   const fetchLockStats = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8080/employee-lock-stats"
+        `${API_URL}/employee-lock-stats`
       );
       setLockStatsData(response.data);
     } catch (error) {
@@ -105,9 +106,9 @@ const ReportSection = () => {
   // Fetch monthly data
   const fetchMonthlyData = async () => {
     try {
-      const response = await axios.get("http://localhost:8080/admin-bookings");
+      const response = await axios.get(`${API_URL}/admin-bookings`);
       const filteredData = response.data.filter((booking) => {
-        const bookingDate = new Date(booking.BDATE);
+        const bookingDate = toDate(booking.BDATE);
         return (
           bookingDate.getMonth() === selectedMonth &&
           bookingDate.getFullYear() === selectedYear &&
@@ -125,7 +126,7 @@ const ReportSection = () => {
   const fetchData = async () => {
     try {
       const roomUsageResponse = await axios.get(
-        "http://localhost:8080/admin-bookings"
+        `${API_URL}/admin-bookings`
       );
       const roomUsage = processRoomUsageData(roomUsageResponse.data);
       setRoomUsageData(roomUsage);
@@ -134,7 +135,7 @@ const ReportSection = () => {
       setBookingStatusData(statusData);
       
       const departmentResponse = await axios.get(
-        "http://localhost:8080/members"
+        `${API_URL}/members`
       );
       const deptData = processDepartmentData(departmentResponse.data);
       setDepartmentData(deptData);
@@ -146,7 +147,7 @@ const ReportSection = () => {
   // Fetch departments list
   const fetchDepartments = async () => {
     try {
-      const response = await axios.get("http://localhost:8080/departments");
+      const response = await axios.get(`${API_URL}/departments`);
       setDepartments(response.data);
     } catch (error) {
       console.error("Error fetching departments:", error);
@@ -156,7 +157,7 @@ const ReportSection = () => {
   // Fetch meeting rooms list
   const fetchRooms = async () => {
     try {
-      const response = await axios.get("http://localhost:8080/rooms");
+      const response = await axios.get(`${API_URL}/rooms`);
       const transformedRooms = response.data.map((room) => ({
         id: room.CFRNUMBER,
         name: room.CFRNAME,
@@ -180,10 +181,11 @@ const ReportSection = () => {
         params.append("roomId", selectedRoom);
       }
   
-      const response = await axios.get(`http://localhost:8080/admin-bookings?${params}`);
+      const response = await axios.get(`${API_URL}/admin-bookings?${params}`);
       const filteredBookings = response.data.filter((booking) => {
-        const bookingDate = format(new Date(booking.BDATE), "yyyy-MM-dd");
-        return bookingDate === formattedDate;
+        const d = toDate(booking.BDATE);
+        if (!d) return false;
+        return format(d, "yyyy-MM-dd") === formattedDate;
       });
   
       const processedData = processRoomUsageData(filteredBookings);
@@ -196,7 +198,7 @@ const ReportSection = () => {
   // Fetch all days data (no filters)
   const fetchAllDaysData = async () => {
     try {
-      const response = await axios.get("http://localhost:8080/admin-bookings");
+      const response = await axios.get(`${API_URL}/admin-bookings`);
       const processedData = processRoomUsageData(response.data);
       setRoomUsageData(processedData);
     } catch (error) {
@@ -208,19 +210,24 @@ const ReportSection = () => {
   const processRoomUsageData = (data) => {
     const roomUsage = {};
     data.forEach((booking) => {
-      const date = format(new Date(booking.BDATE), "yyyy-MM-dd");
+      const d = toDate(booking.BDATE);
+      if (!d) return;
+      const date = format(d, "yyyy-MM-dd");
       if (!roomUsage[date]) {
-        roomUsage[date] = {
-          date: format(new Date(date), "dd/MM/yyyy"),
-          sortDate: date,
-          count: 0,
-        };
+        roomUsage[date] = { date: format(parseISO(date), "dd/MM/yyyy"), sortDate: date, count: 0 };
       }
       roomUsage[date].count++;
     });
     return Object.values(roomUsage).sort((a, b) =>
       a.sortDate.localeCompare(b.sortDate)
     );
+  };
+
+  const toDate = (val) => {
+    if (!val) return null;
+    if (val instanceof Date) return isValid(val) ? val : null;
+    const d = parseISO(String(val));
+    return isValid(d) ? d : null;
   };
 
   // Process booking status data

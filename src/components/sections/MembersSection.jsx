@@ -41,9 +41,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import axios from "axios";
+import { API_URL } from "@/config";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-const API_URL = "http://localhost:8080";
 const ITEMS_PER_PAGE = 10;
 
 // Utility functions
@@ -312,10 +312,11 @@ const MembersSection = () => {
       className="p-6 space-y-6"
     >
       <Card className="backdrop-blur-sm bg-white/90 border-none shadow-xl">
-        <CardHeader className="border-b border-gray-100 pb-6">
+        <CardHeader className="p-6 relative">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-purple-500" />
           <div className="flex items-center justify-between">
             <motion.div variants={itemVariants}>
-              <CardTitle className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+              <CardTitle className="text-3xl font-bold text-foreground">
                 Member Management
               </CardTitle>
             </motion.div>
@@ -326,7 +327,6 @@ const MembersSection = () => {
                   resetForm();
                   setIsModalOpen(true);
                 }}
-                className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 <Plus className="mr-2 h-4 w-4" /> Add Member
               </Button>
@@ -346,44 +346,44 @@ const MembersSection = () => {
                 placeholder="Search members..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500 transition-all duration-300"
+                className="pl-10 border-gray-200 focus:border-primary focus:ring-primary transition-all duration-300"
               />
             </div>
           </motion.div>
 
           <motion.div
             variants={itemVariants}
-            className="member-table overflow-hidden rounded-lg border border-gray-200 bg-white"
+            className="member-table overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-black/5"
           >
             <Table>
               <TableHeader>
-                <TableRow className="bg-gray-50">
-                  <TableHead className="font-semibold text-gray-600">
+                <TableRow className="bg-muted/50">
+                  <TableHead className="font-semibold text-muted-foreground">
                     รหัส
                   </TableHead>
-                  <TableHead className="font-semibold text-gray-600">
+                  <TableHead className="font-semibold text-muted-foreground">
                     ชื่อ
                   </TableHead>
-                  <TableHead className="font-semibold text-gray-600">
+                  <TableHead className="font-semibold text-muted-foreground">
                     อีเมล
                   </TableHead>
-                  <TableHead className="font-semibold text-gray-600">
+                  <TableHead className="font-semibold text-muted-foreground">
                     แผนก
                   </TableHead>
-                  <TableHead className="font-semibold text-gray-600">
+                  <TableHead className="font-semibold text-muted-foreground">
                     ตำแหน่ง
                   </TableHead>
-                  <TableHead className="font-semibold text-gray-600">
+                  <TableHead className="font-semibold text-muted-foreground">
                     สถานะ
                   </TableHead>
-                  <TableHead className="font-semibold text-gray-600">
+                  <TableHead className="font-semibold text-muted-foreground">
                     การจัดการ
                   </TableHead>
                 </TableRow>
               </TableHeader>
 
               <TableBody>
-                <AnimatePresence mode="wait">
+                <AnimatePresence mode="sync">
                   {paginatedMembers.map((member) => (
                     <motion.tr
                       key={member.SSN}
@@ -391,7 +391,7 @@ const MembersSection = () => {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -20 }}
                       transition={{ duration: 0.3 }}
-                      className="hover:bg-gray-50/50 transition-colors duration-200"
+                      className="hover:bg-accent transition-colors duration-200"
                     >
                       <TableCell className="font-medium">
                         {formatID(member.SSN)}

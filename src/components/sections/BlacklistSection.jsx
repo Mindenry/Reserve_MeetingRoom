@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { API_URL } from "@/config";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, MoreVertical, Unlock, Info } from "lucide-react";
@@ -58,7 +59,7 @@ const BlacklistSection = () => {
 
   const fetchBlacklistedUsers = async () => {
     try {
-      const response = await axios.get("http://localhost:8080/blacklist");
+      const response = await axios.get(`${API_URL}/blacklist`);
       setBlacklistedUsers(response.data);
     } catch (error) {
       console.error("Error fetching blacklisted users:", error);
@@ -73,7 +74,7 @@ const BlacklistSection = () => {
   const handleUnlockUser = async () => {
     try {
       const response = await axios.post(
-        `http://localhost:8080/unlock-employee/${selectedUser.ESSN}`
+        `${API_URL}/unlock-employee/${selectedUser.ESSN}`
       );
       if (response.data.success) {
         toast.success(
@@ -210,7 +211,7 @@ const BlacklistSection = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <AnimatePresence mode="wait">
+                <AnimatePresence mode="sync">
                   {filteredUsers.length === 0 ? (
                     <motion.tr
                       initial={{ opacity: 0 }}

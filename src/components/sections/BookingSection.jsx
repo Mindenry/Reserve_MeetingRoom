@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import axios from "axios";
+import { API_URL } from "@/config";
 import { CalendarIcon, Clock, Building, Layers, DoorOpen, Users, Home, Check } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { cn } from "@/lib/utils";
 import { format, addDays } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
-const API_URL = "http://localhost:8080";
 const containerVariants = {
   hidden: { opacity: 0, y: 50 },
   visible: {
@@ -119,7 +119,13 @@ const BookingSection = () => {
   const fetchRoomTypes = async () => {
     try {
       const response = await axios.get(`${API_URL}/roomtypes`);
-      setRoomTypes(response.data);
+      const types = (response.data || [])
+        .map((rt) => ({
+          RTNUMBER: rt.RTNUMBER ?? rt.rtnumber ?? rt.rtNumber,
+          RTNAME: rt.RTNAME ?? rt.rtname ?? rt.rtName,
+        }))
+        .filter((rt) => rt.RTNUMBER !== undefined && rt.RTNAME !== undefined);
+      setRoomTypes(types);
     } catch (error) {
       console.error("Error fetching room types:", error);
       toast.error("ไม่สามารถดึงข้อมูลประเภทห้องได้");
@@ -128,7 +134,13 @@ const BookingSection = () => {
   const fetchBuildings = async () => {
     try {
       const response = await axios.get(`${API_URL}/buildings`);
-      setBuildings(response.data);
+      const items = (response.data || [])
+        .map((b) => ({
+          BDNUMBER: b.BDNUMBER ?? b.bdnumber ?? b.bdNumber,
+          BDNAME: b.BDNAME ?? b.bdname ?? b.bdName,
+        }))
+        .filter((b) => b.BDNUMBER !== undefined && b.BDNAME !== undefined);
+      setBuildings(items);
     } catch (error) {
       console.error("Error fetching buildings:", error);
       toast.error("ไม่สามารถดึงข้อมูลอาคารได้");
@@ -137,7 +149,14 @@ const BookingSection = () => {
   const fetchFloors = async (buildingId) => {
     try {
       const response = await axios.get(`${API_URL}/floors?buildingId=${buildingId}`);
-      setFloors(response.data);
+      const items = (response.data || [])
+        .map((f) => ({
+          FLNUMBER: f.FLNUMBER ?? f.flnumber ?? f.flNumber,
+          FLNAME: f.FLNAME ?? f.flname ?? f.flName,
+          BDNUMBER: f.BDNUMBER ?? f.bdnumber ?? f.bdNumber,
+        }))
+        .filter((f) => f.FLNUMBER !== undefined && f.FLNAME !== undefined);
+      setFloors(items);
     } catch (error) {
       console.error("Error fetching floors:", error);
       toast.error("ไม่สามารถดึงข้อมูลชั้นได้");
@@ -152,8 +171,17 @@ const BookingSection = () => {
           participants,
         },
       });
-      const filteredRooms = response.data.filter((room) => {
-        return room.RTNUM.toString() === selectedRoomType.toString();
+      const items = (response.data || []).map((r) => ({
+        CFRNUMBER: r.CFRNUMBER ?? r.cfrnumber,
+        CFRNAME: r.CFRNAME ?? r.cfrname,
+        BDNUMBER: r.BDNUMBER ?? r.bdnumber,
+        FLNUMBER: r.FLNUMBER ?? r.flnumber,
+        RTNUM: r.RTNUM ?? r.rtnum,
+        CAPACITY: r.CAPACITY ?? r.capacity,
+      }));
+      const filteredRooms = items.filter((room) => {
+        const rt = room.RTNUM;
+        return rt !== undefined && rt.toString() === String(selectedRoomType);
       });
       if (filteredRooms.length === 0) {
         toast.error(`ไม่พบห้องประเภท ${getRoomTypeName(selectedRoomType)} ในชั้นที่เลือก`);
@@ -166,7 +194,7 @@ const BookingSection = () => {
     }
   };
   const getRoomTypeName = (rtNumber) => {
-    const roomType = roomTypes.find((rt) => rt.RTNUMBER.toString() === rtNumber);
+    const roomType = roomTypes.find((rt) => String(rt.RTNUMBER) === String(rtNumber));
     return roomType ? roomType.RTNAME : "";
   };
   const validateBookingData = (data) => {

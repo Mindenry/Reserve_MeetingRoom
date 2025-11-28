@@ -46,7 +46,7 @@ import {
 import { Label } from "@/components/ui/label";
 import axios from "axios";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-const API_URL = "http://localhost:8080";
+import { API_URL } from "@/config";
 const ITEMS_PER_PAGE = 10;
 const fetchRooms = async () => {
   const response = await axios.get(`${API_URL}/room`);
@@ -288,18 +288,16 @@ export const RoomsSection = () => {
       className="p-6 space-y-6"
     >
       <Card className="backdrop-blur-sm bg-white/90 border-none shadow-xl">
-        <CardHeader className="border-b border-gray-100 pb-6">
+        <CardHeader className="p-6 relative">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-purple-500" />
           <div className="flex items-center justify-between">
             <motion.div variants={itemVariants}>
-              <CardTitle className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+              <CardTitle className="text-3xl font-bold text-foreground">
                 Room Management
               </CardTitle>
             </motion.div>
             <motion.div variants={itemVariants}>
-              <Button
-                onClick={() => handleAction("add")}
-                className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
-              >
+              <Button onClick={() => handleAction("add")}> 
                 <Plus className="mr-2 h-4 w-4" /> Add Room
               </Button>
             </motion.div>
@@ -317,45 +315,45 @@ export const RoomsSection = () => {
                 placeholder="Search rooms..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500 transition-all duration-300"
+                className="pl-10 border-gray-200 focus:border-primary focus:ring-primary transition-all duration-300"
               />
             </div>
           </motion.div>
           <motion.div
             variants={itemVariants}
-            className="overflow-hidden rounded-lg border border-gray-200 bg-white"
+            className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-black/5"
           >
             <Table>
               <TableHeader>
-                <TableRow className="bg-gray-50">
-                  <TableHead className="font-semibold text-gray-600">
+                <TableRow className="bg-muted/50">
+                  <TableHead className="font-semibold text-muted-foreground">
                     รหัส
                   </TableHead>
-                  <TableHead className="font-semibold text-gray-600">
+                  <TableHead className="font-semibold text-muted-foreground">
                     ชื่อ
                   </TableHead>
-                  <TableHead className="font-semibold text-gray-600">
+                  <TableHead className="font-semibold text-muted-foreground">
                     อาคาร
                   </TableHead>
-                  <TableHead className="font-semibold text-gray-600">
+                  <TableHead className="font-semibold text-muted-foreground">
                     ชั้น
                   </TableHead>
-                  <TableHead className="font-semibold text-gray-600">
+                  <TableHead className="font-semibold text-muted-foreground">
                     ประเภท
                   </TableHead>
-                  <TableHead className="font-semibold text-gray-600">
+                  <TableHead className="font-semibold text-muted-foreground">
                     สถานะ
                   </TableHead>
-                  <TableHead className="font-semibold text-gray-600">
+                  <TableHead className="font-semibold text-muted-foreground">
                     ความจุ
                   </TableHead>
-                  <TableHead className="font-semibold text-gray-600">
+                  <TableHead className="font-semibold text-muted-foreground">
                     การจัดการ
                   </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <AnimatePresence mode="wait">
+        <AnimatePresence mode="sync">
                   {paginatedRooms.map((room) => (
                     <motion.tr
                       key={room.CFRNUMBER}

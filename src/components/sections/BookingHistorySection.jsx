@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
+import { API_URL } from "@/config";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
@@ -18,7 +19,7 @@ import {
   Receipt, 
   Printer 
 } from 'lucide-react';
-import { format } from "date-fns";
+import { format, parseISO, isValid } from "date-fns";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -27,7 +28,6 @@ import CancelConfirmationModal from "../modals/CancelConfirmationModal";
 import QRCodeModal from "../modals/QRCodeModal";
 import ReceiptDialog from "@/components/ReceiptDialog";
 
-const API_URL = "http://localhost:8080";
 const containerVariants = {
   hidden: { opacity: 0, y: 50 },
   visible: {
@@ -63,14 +63,24 @@ const BookingHistorySection = () => {
   const fetchHistory = async () => {
     try {
       const response = await axios.get(`${API_URL}/user-bookings/${user.ssn}`);
-      const sortedBookings = response.data.sort(
-        (a, b) => new Date(b.BDATE) - new Date(a.BDATE)
-      );
+      const sortedBookings = response.data.sort((a, b) => {
+        const da = toDate(a.BDATE);
+        const db = toDate(b.BDATE);
+        return (db?.getTime?.() || 0) - (da?.getTime?.() || 0);
+      });
       setBookings(sortedBookings);
     } catch (error) {
       console.error("Error fetching history:", error);
       toast.error("ไม่สามารถดึงข้อมูลการจองได้");
     }
+  };
+
+  const toDate = (val) => {
+    if (!val) return null;
+    if (val instanceof Date) return isValid(val) ? val : null;
+    const s = String(val).replace(" ", "T");
+    const d = parseISO(s);
+    return isValid(d) ? d : null;
   };
 
   useEffect(() => {
@@ -138,7 +148,7 @@ const BookingHistorySection = () => {
 
   const isTimeToShowQR = (booking) => {
     const now = new Date();
-    const startTime = new Date(booking.STARTTIME);
+    const startTime = toDate(booking.STARTTIME) || new Date();
     return now >= startTime && booking.STUBOOKING === 1;
   };
 
@@ -283,63 +293,63 @@ const BookingHistorySection = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <motion.div
             variants={itemVariants}
-            className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-4 text-white shadow-lg"
+            className="rounded-2xl p-4 bg-white shadow-sm ring-1 ring-black/5"
           >
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">การจองทั้งหมด</h3>
-              <div className="p-2 bg-white/10 rounded-lg">
+              <h3 className="text-sm font-medium text-muted-foreground">การจองทั้งหมด</h3>
+              <div className="p-2 rounded-lg bg-primary/10 text-primary">
                 <Calendar className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-3xl font-bold mt-2">{stats.total}</p>
+            <p className="text-3xl font-bold mt-2 text-foreground">{stats.total}</p>
           </motion.div>
 
           <motion.div
             variants={itemVariants}
-            className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-4 text-white shadow-lg"
+            className="rounded-2xl p-4 bg-white shadow-sm ring-1 ring-black/5"
           >
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">กำลังใช้งาน</h3>
-              <div className="p-2 bg-white/10 rounded-lg">
+              <h3 className="text-sm font-medium text-muted-foreground">กำลังใช้งาน</h3>
+              <div className="p-2 rounded-lg bg-green-100 text-green-600">
                 <Users className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-3xl font-bold mt-2">{stats.active}</p>
+            <p className="text-3xl font-bold mt-2 text-foreground">{stats.active}</p>
           </motion.div>
 
           <motion.div
             variants={itemVariants}
-            className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-4 text-white shadow-lg"
+            className="rounded-2xl p-4 bg-white shadow-sm ring-1 ring-black/5"
           >
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">เสร็จสิ้น</h3>
-              <div className="p-2 bg-white/10 rounded-lg">
+              <h3 className="text-sm font-medium text-muted-foreground">เสร็จสิ้น</h3>
+              <div className="p-2 rounded-lg bg-purple-100 text-purple-600">
                 <Shield className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-3xl font-bold mt-2">{stats.completed}</p>
+            <p className="text-3xl font-bold mt-2 text-foreground">{stats.completed}</p>
           </motion.div>
 
           <motion.div
             variants={itemVariants}
-            className="bg-gradient-to-br from-red-500 to-red-600 rounded-2xl p-4 text-white shadow-lg"
+            className="rounded-2xl p-4 bg-white shadow-sm ring-1 ring-black/5"
           >
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">ยกเลิก</h3>
-              <div className="p-2 bg-white/10 rounded-lg">
+              <h3 className="text-sm font-medium text-muted-foreground">ยกเลิก</h3>
+              <div className="p-2 rounded-lg bg-red-100 text-red-600">
                 <AlertCircle className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-3xl font-bold mt-2">{stats.cancelled}</p>
+            <p className="text-3xl font-bold mt-2 text-foreground">{stats.cancelled}</p>
           </motion.div>
         </div>
 
-        <Card className="overflow-hidden shadow-xl rounded-xl border-0">
-          <CardHeader className="bg-gradient-to-r from-slate-900 to-slate-800 text-white p-6 relative overflow-hidden">
-            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgeD0iMCIgeT0iMCIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDIwIDAgTCAwIDAgMCAyMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMSkiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')]" />
+        <Card className="overflow-hidden">
+          <CardHeader className="p-6 relative">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-purple-500" />
             <div className="relative z-10">
               <CardTitle className="text-2xl font-bold flex items-center gap-3">
-                <div className="p-2 bg-white/10 rounded-lg backdrop-blur-sm">
+                <div className="p-2 rounded-lg bg-primary/10 text-primary">
                   <DoorOpen className="h-6 w-6" />
                 </div>
                 รายการจองทั้งหมด
@@ -353,10 +363,10 @@ const BookingHistorySection = () => {
                 description="ยังไม่มีการจองห้องใดๆ"
               />
             ) : (
-              <div className="overflow-x-auto rounded-xl shadow-sm border border-gray-100">
+              <div className="overflow-x-auto rounded-xl shadow-sm ring-1 ring-black/5">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-gradient-to-r from-gray-50 to-gray-100/50">
+                    <TableRow className="bg-muted/50">
                       <TableHead className="font-semibold">รหัสการจอง</TableHead>
                       <TableHead className="font-semibold">ห้อง</TableHead>
                       <TableHead className="font-semibold">วันที่</TableHead>
@@ -377,11 +387,11 @@ const BookingHistorySection = () => {
                           initial="hidden"
                           animate="visible"
                           exit="hidden"
-                          className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'} hover:bg-blue-50/50 transition-colors`}
+                          className={`${index % 2 === 0 ? 'bg-white' : 'bg-muted/30'} hover:bg-accent transition-colors`}
                         >
                           <TableCell className="font-medium">
                             <div className="flex items-center gap-2">
-                              <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${getStatusInfo(booking.STUBOOKING).gradientClass}`} />
+                              <div className={`w-2 h-2 rounded-full bg-primary`} />
                               {booking.RESERVERID}
                             </div>
                           </TableCell>
@@ -390,30 +400,30 @@ const BookingHistorySection = () => {
                           </TableCell>
                           <TableCell>
                             <span className="text-gray-600">
-                              {format(new Date(booking.BDATE), "dd MMM yyyy")}
+                              {format(toDate(booking.BDATE) || new Date(), "dd MMM yyyy")}
                             </span>
                           </TableCell>
                           <TableCell>
                             <span className="text-gray-600">
-                              {format(new Date(booking.STARTTIME), "HH:mm")}
+                              {format(toDate(booking.STARTTIME) || new Date(), "HH:mm")}
                             </span>
                           </TableCell>
                           <TableCell>
                             <span className="text-gray-600">
-                              {format(new Date(booking.ENDTIME), "HH:mm")}
+                              {format(toDate(booking.ENDTIME) || new Date(), "HH:mm")}
                             </span>
                           </TableCell>
                           <TableCell>{getStatusBadge(booking.STUBOOKING)}</TableCell>
                           <TableCell>
                             <span className="text-gray-600">
-                              {booking.TIME ? format(new Date(booking.TIME), "HH:mm") : "-"}
+                              {booking.TIME ? format(toDate(booking.TIME) || new Date(), "HH:mm") : "-"}
                             </span>
                           </TableCell>
                           <TableCell className="text-right">
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="hover:bg-blue-50 transition-colors text-blue-600"
+                              className="hover:bg-accent transition-colors text-primary"
                               onClick={() => {
                                 handleShowReceipt(booking);
                                 setTimeout(() => {
@@ -430,7 +440,7 @@ const BookingHistorySection = () => {
                               <DropdownMenuTrigger asChild>
                                 <Button
                                   variant="ghost"
-                                  className="h-8 w-8 p-0 hover:bg-blue-50 transition-colors"
+                                  className="h-8 w-8 p-0 hover:bg-accent transition-colors"
                                   disabled={booking.STUBOOKING === 3}
                                 >
                                   <span className="sr-only">Open menu</span>
@@ -439,7 +449,7 @@ const BookingHistorySection = () => {
                               </DropdownMenuTrigger>
                               <DropdownMenuContent
                                 align="end"
-                                className="w-48 bg-white shadow-lg rounded-lg border-0"
+                                className="w-48 bg-white shadow-lg rounded-xl border-0"
                               >
                                 {(booking.STUBOOKING === 1 || booking.STUBOOKING === 4) && (
                                   <DropdownMenuItem
@@ -452,7 +462,7 @@ const BookingHistorySection = () => {
                                 {booking.STUBOOKING === 5 && (
                                   <DropdownMenuItem
                                     onClick={() => handleShowCancelReason(booking)}
-                                    className="hover:bg-blue-50 transition-colors cursor-pointer px-4 py-2 text-sm"
+                                    className="hover:bg-accent transition-colors cursor-pointer px-4 py-2 text-sm"
                                   >
                                     <Info className="h-4 w-4 mr-2" />
                                     ดูเหตุผลการยกเลิก
@@ -461,14 +471,14 @@ const BookingHistorySection = () => {
                                 {isTimeToShowQR(booking) && (
                                   <DropdownMenuItem
                                     onClick={() => handleShowQRCode(booking)}
-                                    className="hover:bg-blue-50 transition-colors cursor-pointer px-4 py-2 text-sm"
+                                    className="hover:bg-accent transition-colors cursor-pointer px-4 py-2 text-sm"
                                   >
                                     <QrCode className="mr-2 h-4 w-4" /> QR Code
                                   </DropdownMenuItem>
                                 )}
                                 <DropdownMenuItem
                                   onClick={() => handleShowReceipt(booking)}
-                                  className="hover:bg-blue-50 transition-colors cursor-pointer px-4 py-2 text-sm"
+                                  className="hover:bg-accent transition-colors cursor-pointer px-4 py-2 text-sm"
                                 >
                                   <Receipt className="mr-2 h-4 w-4" /> ดูใบเสร็จ
                                 </DropdownMenuItem>
@@ -499,10 +509,10 @@ const BookingHistorySection = () => {
         />
 
         <Dialog open={showCancelReason} onOpenChange={setShowCancelReason}>
-          <DialogContent className="sm:max-w-[525px] p-0 overflow-hidden bg-white shadow-2xl">
-            <DialogHeader className="px-6 pt-6 pb-4 bg-gradient-to-r from-slate-900 to-slate-800 text-white">
+          <DialogContent className="sm:max-w-[525px] p-0 overflow-hidden bg-white rounded-xl shadow-2xl">
+            <DialogHeader className="px-6 pt-6 pb-4 border-b">
               <DialogTitle className="text-xl font-semibold flex items-center">
-                <div className="p-2 bg-white/10 rounded-lg mr-3">
+                <div className="p-2 bg-primary/10 rounded-lg mr-3 text-primary">
                   <Info className="h-6 w-6" />
                 </div>
                 <span>เหตุผลการยกเลิก</span>

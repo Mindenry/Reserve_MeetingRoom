@@ -3,6 +3,9 @@ import { Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { API_URL } from "@/config";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 const LoginForm = ({ onToggleForm }) => {
   const [showPassword, setShowPassword] = useState(false);
@@ -23,7 +26,7 @@ const LoginForm = ({ onToggleForm }) => {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:8080/login", {
+      const response = await fetch(`${API_URL}/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -43,7 +46,10 @@ const LoginForm = ({ onToggleForm }) => {
 
         const userData = {
           ...data.user,
-          positionNo: data.user.positionNo || 3,
+          positionNo: data.user.positionNo || data.user.pnum || 3,
+          firstName: data.user.fname || data.user.firstName || "",
+          lastName: data.user.lname || data.user.lastName || "",
+          username: data.user.username || (data.user.email ? String(data.user.email).split('@')[0] : ""),
         };
 
         login(userData, rememberMe);
@@ -63,37 +69,37 @@ const LoginForm = ({ onToggleForm }) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <h2 className="text-2xl font-bold text-center text-white mb-6">
+      <h2 className="text-2xl font-bold text-center text-foreground mb-6">
         Login MUT Reserve
       </h2>
-      <div className="relative">
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="w-full px-4 py-2 bg-white bg-opacity-10 border border-white border-opacity-30 rounded-md text-white placeholder-white placeholder-opacity-70 focus:outline-none focus:ring-2 focus:ring-[#e94560]"
-          placeholder="Email"
-        />
+      <div className="space-y-4">
+        <div className="relative">
+          <Input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            placeholder="Email"
+          />
+        </div>
+        <div className="relative">
+          <Input
+            type={showPassword ? "text" : "password"}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            placeholder="Password"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+          >
+            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+          </button>
+        </div>
       </div>
-      <div className="relative">
-        <input
-          type={showPassword ? "text" : "password"}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          className="w-full px-4 py-2 bg-white bg-opacity-10 border border-white border-opacity-30 rounded-md text-white placeholder-white placeholder-opacity-70 focus:outline-none focus:ring-2 focus:ring-[#e94560]"
-          placeholder="Password"
-        />
-        <button
-          type="button"
-          onClick={() => setShowPassword(!showPassword)}
-          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white opacity-70 hover:opacity-100"
-        >
-          {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-        </button>
-      </div>
-      <div className="flex items-center justify-between text-sm text-white">
+      <div className="flex items-center justify-between text-sm text-muted-foreground">
         <label className="flex items-center">
           <input
             type="checkbox"
@@ -104,13 +110,9 @@ const LoginForm = ({ onToggleForm }) => {
           Remember me
         </label>
       </div>
-      <button
-        type="submit"
-        disabled={isLoading}
-        className="w-full py-2 bg-[#e94560] text-white font-bold rounded-md hover:bg-[#ff6b6b] transition duration-300 disabled:opacity-50"
-      >
+      <Button type="submit" disabled={isLoading} className="w-full">
         {isLoading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
-      </button>
+      </Button>
     </form>
   );
 };

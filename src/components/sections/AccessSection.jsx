@@ -35,6 +35,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
 import axios from "axios";
+import { parseISO, isValid } from "date-fns";
+import { API_URL } from "@/config";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -93,7 +95,7 @@ const AccessSection = () => {
     fetchAccessRecords();
     const statusCheckInterval = setInterval(async () => {
       try {
-        await axios.post("http://localhost:8080/check-room-status");
+        await axios.post(`${API_URL}/check-room-status`);
         fetchAccessRecords();
       } catch (error) {
         console.error("Error checking room status:", error);
@@ -104,10 +106,21 @@ const AccessSection = () => {
 
   const fetchAccessRecords = async () => {
     try {
-      const response = await fetch("http://localhost:8080/admin-bookings");
+      const response = await fetch(`${API_URL}/admin-bookings`);
       if (!response.ok) throw new Error("Error fetching access records");
       const data = await response.json();
-      setAccessRecords(data);
+      const norm = data.map((d) => ({
+        RESERVERID: d.RESERVERID ?? d.reserverid,
+        ESSN: d.ESSN ?? d.essn,
+        CFRNAME: d.CFRNAME ?? d.cfrname,
+        CFRNUM: d.CFRNUM ?? d.cfrnum,
+        BDATE: d.BDATE ?? d.bdate,
+        STARTTIME: d.STARTTIME ?? d.starttime,
+        ENDTIME: d.ENDTIME ?? d.endtime,
+        STUBOOKING: d.STUBOOKING ?? d.stubooking,
+        TIME: d.TIME ?? d.time,
+      }));
+      setAccessRecords(norm);
     } catch (error) {
       console.error("Error fetching data:", error);
       toast.error("ไม่สามารถดึงข้อมูลการจองได้");
@@ -117,7 +130,7 @@ const AccessSection = () => {
   const handleShowCancelReason = async (booking) => {
     try {
       const response = await fetch(
-        `http://localhost:8080/cancel-reason/${booking.RESERVERID}`
+        `${API_URL}/cancel-reason/${booking.RESERVERID}`
       );
       if (!response.ok) throw new Error("Failed to fetch cancel details");
       const data = await response.json();
@@ -146,7 +159,7 @@ const AccessSection = () => {
     }
     try {
       const response = await fetch(
-        `http://localhost:8080/cancel/${selectedBooking.RESERVERID}/${selectedBooking.CFRNUM}`,
+        `${API_URL}/cancel/${selectedBooking.RESERVERID}/${selectedBooking.CFRNUM}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -179,7 +192,7 @@ const AccessSection = () => {
   const handleApproveBooking = async () => {
     try {
       const response = await fetch(
-        `http://localhost:8080/approve/${bookingToApprove.RESERVERID}/${bookingToApprove.CFRNUM}`,
+        `${API_URL}/approve/${bookingToApprove.RESERVERID}/${bookingToApprove.CFRNUM}`,
         { method: "POST" }
       );
       if (!response.ok) throw new Error("Failed to approve booking");
@@ -203,9 +216,11 @@ const AccessSection = () => {
     )
   );
 
-  const sortedRecords = filteredRecords.sort(
-    (a, b) => new Date(b.BDATE) - new Date(a.BDATE)
-  );
+  const sortedRecords = filteredRecords.sort((a, b) => {
+    const da = toDate(a.BDATE);
+    const db = toDate(b.BDATE);
+    return (db?.getTime?.() || 0) - (da?.getTime?.() || 0);
+  });
 
   const totalPages = Math.ceil(sortedRecords.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -330,7 +345,7 @@ const AccessSection = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <AnimatePresence mode="wait">
+                <AnimatePresence mode="sync">
                   {paginatedRecords.length === 0 ? (
                     <motion.tr
                       initial={{ opacity: 0 }}
@@ -360,10 +375,10 @@ const AccessSection = () => {
                         <TableCell>{record.ESSN}</TableCell>
                         <TableCell>{record.CFRNAME}</TableCell>
                         <TableCell>
-                          {new Date(record.BDATE).toLocaleDateString("th-TH")}
+                          {(toDate(record.BDATE) || new Date()).toLocaleDateString("th-TH")}
                         </TableCell>
                         <TableCell>
-                          {new Date(record.STARTTIME).toLocaleTimeString(
+                          {(toDate(record.STARTTIME) || new Date()).toLocaleTimeString(
                             "th-TH",
                             {
                               hour: "2-digit",
@@ -372,7 +387,7 @@ const AccessSection = () => {
                           )}
                         </TableCell>
                         <TableCell>
-                          {new Date(record.ENDTIME).toLocaleTimeString(
+                          {(toDate(record.ENDTIME) || new Date()).toLocaleTimeString(
                             "th-TH",
                             {
                               hour: "2-digit",
@@ -382,7 +397,7 @@ const AccessSection = () => {
                         </TableCell>
                         <TableCell>
                           {record.TIME
-                            ? new Date(record.TIME).toLocaleTimeString(
+                            ? (toDate(record.TIME) || new Date()).toLocaleTimeString(
                                 "th-TH",
                                 {
                                   hour: "2-digit",
@@ -837,3 +852,10 @@ const AccessSection = () => {
   );
 };
 export default AccessSection;
+  const toDate = (val) => {
+    if (!val) return null;
+    if (val instanceof Date) return isValid(val) ? val : null;
+    const s = String(val).replace(" ", "T");
+    const d = parseISO(s);
+    return isValid(d) ? d : null;
+  };

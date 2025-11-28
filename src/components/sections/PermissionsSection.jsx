@@ -42,7 +42,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import PermissionModal from "../modals/PermissionModal";
 import axios from "axios";
-const API_URL = "http://localhost:8080";
+import { API_URL } from "@/config";
 // Enhanced animation variants
 const containerVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -108,7 +108,13 @@ const PermissionsSection = () => {
       ]);
       // จัดกลุ่มข้อมูลสิทธิ์ตาม PNUM
       const groupedPermissions = {};
-      accessMenusRes.data.forEach((item) => {
+      accessMenusRes.data.forEach((raw) => {
+        const item = {
+          PNUM: raw.PNUM ?? raw.pnum,
+          PNAME: raw.PNAME ?? raw.pname,
+          MNUM: raw.MNUM ?? raw.mnum,
+          MNAME: raw.MNAME ?? raw.mname,
+        };
         if (!groupedPermissions[item.PNUM]) {
           // หากยังไม่มีการกำหนด PNUM นี้ ให้สร้างรายการใหม่
           groupedPermissions[item.PNUM] = {
@@ -125,8 +131,13 @@ const PermissionsSection = () => {
       });
       // ตั้งค่าข้อมูลสิทธิ์และตำแหน่ง
       setPermissions(Object.values(groupedPermissions)); // แปลงอ็อบเจ็กต์เป็นอาร์เรย์
-      setPositions(positionsRes.data); // ตั้งค่าตำแหน่ง
-      setMenus(menusRes.data); // ตั้งค่าเมนู
+      setPositions(positionsRes.data);
+      const menusNorm = menusRes.data.map((m) => ({
+        MNUM: m.MNUM ?? m.mnum,
+        MNUMBER: m.MNUMBER ?? m.MNUM ?? m.mnum,
+        MNAME: m.MNAME ?? m.mname,
+      }));
+      setMenus(menusNorm);
     } catch (error) {
       console.error("Error fetching data:", error);
       toast.error("เกิดข้อผิดพลาดในการดึงข้อมูล");
@@ -249,15 +260,8 @@ const PermissionsSection = () => {
               </motion.p>
             </div>
           </div>
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Button
-              onClick={handleAddPermission}
-              className="bg-white text-slate-900 hover:bg-slate-100 shadow-lg transition-all duration-300 px-6 py-6 text-lg font-medium rounded-xl"
-              size="lg"
-            >
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <Button onClick={handleAddPermission} size="lg">
               <Plus className="mr-2 h-5 w-5" /> เพิ่มสิทธิ์
             </Button>
           </motion.div>
@@ -328,7 +332,7 @@ const PermissionsSection = () => {
                         </TableCell>
                         <TableCell className="px-6 py-4">
                           <div className="flex flex-wrap gap-2">
-                            <AnimatePresence>
+                            <AnimatePresence mode="sync">
                               {permission.access.map((access) => (
                                 <motion.span
                                   key={access.MNUM}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import axios from "axios";
+import { API_URL } from "@/config";
 import {
   Mail,
   Search,
@@ -42,7 +43,7 @@ const ContactInfo = () => {
   const fetchContacts = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get("http://localhost:8080/contacts");
+      const response = await axios.get(`${API_URL}/contacts`);
       setContacts(response.data);
     } catch (error) {
       toast.error("ไม่สามารถดึงข้อมูลการติดต่อได้", {

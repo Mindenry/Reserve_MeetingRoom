@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
 import axios from "axios";
+import { API_URL } from "@/config";
 import { toast } from "sonner";
 
 const ContactUser = () => {
@@ -26,14 +27,14 @@ const ContactUser = () => {
 
     try {
       const employeeCheck = await axios.get(
-        `http://localhost:8080/employee/${user.ssn}`
+        `${API_URL}/employee/${user.ssn}`
       );
       if (!employeeCheck.data.success) {
         toast.error("ไม่พบข้อมูลพนักงาน");
         return;
       }
 
-      const response = await axios.post("http://localhost:8080/contact", {
+      const response = await axios.post(`${API_URL}/contact`, {
         ESSN: user.ssn,
         MESSAGE: data.message,
       });

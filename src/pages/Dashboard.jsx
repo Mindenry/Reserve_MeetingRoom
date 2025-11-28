@@ -16,6 +16,7 @@ import BookingSection from "../components/sections/BookingSection";
 import ContactSection from "../components/sections/ContactSection";
 import ContactInfo from "../components/sections/ContactInfo";
 import BookingHistorySection from "../components/sections/BookingHistorySection";
+import ProfileSection from "../components/sections/ProfileSection";
 
 // สร้างฟังก์ชัน Dashboard สำหรับคอมโพเนนต์ Dashboard
 const Dashboard = () => {
@@ -27,10 +28,10 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!user) { // ถ้าผู้ใช้ไม่มีข้อมูล (ไม่ได้เข้าสู่ระบบ) ให้ไปยังหน้าแรก
+    if (!user) {
       navigate("/");
     }
-  }, [user, navigate]); // ทำงานเมื่อ user หรือ navigate เปลี่ยนแปลง
+  }, [user, navigate]);
 
   // ฟังก์ชันสำหรับสลับสถานะของ Sidebar
   const toggleSidebar = () => {
@@ -43,11 +44,11 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-background">
       <Sidebar isCollapsed={isSidebarCollapsed} toggleSidebar={toggleSidebar} />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header toggleSidebar={toggleSidebar} />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-background p-6">
           <Routes>
             {hasPermission(1) && <Route path="/" element={<HomeSection />} />}
             {hasPermission(2) && (
@@ -83,6 +84,7 @@ const Dashboard = () => {
             {hasPermission(12) && (
               <Route path="/contact-info" element={<ContactInfo />} />
             )}
+            <Route path="/profile" element={<ProfileSection />} />
             <Route path="*" element={<AccessDenied />} />
           </Routes>
         </main>

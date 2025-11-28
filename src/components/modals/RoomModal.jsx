@@ -1,5 +1,6 @@
 import React from "react";
 import axios from "axios";
+import { API_URL } from "@/config";
 
 import {
   Dialog,
@@ -62,11 +63,9 @@ const RoomModal = ({ isOpen, onClose, onSave, room }) => {
     e.preventDefault();
     try {
       if (room) {
-        // แก้ไขข้อมูลห้อง
-        await axios.put(`http://localhost:8080/room/${formData.id}`, formData);
+        await axios.put(`${API_URL}/updateroom/${formData.id}`, formData);
       } else {
-        // สร้างห้องใหม่
-        await axios.post("http://localhost:8080/room", formData);
+        await axios.post(`${API_URL}/addroom`, formData);
       }
       onSave(formData);
       onClose(); // ปิดโมดัล

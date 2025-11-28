@@ -1,7 +1,9 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { motion } from "framer-motion";
+import { API_URL } from "@/config";
+import { motion, useMotionValue, useTransform } from "framer-motion";
+import { Link } from "react-router-dom";
 import {
   Calendar,
   Users,
@@ -9,6 +11,7 @@ import {
   Building2,
   Sparkles,
   BarChart3,
+  QrCode,
 } from "lucide-react";
 import {
   XAxis,
@@ -20,7 +23,7 @@ import {
   AreaChart,
 } from "recharts";
 import { Card } from "@/components/ui/card";
-const API_URL = "http://localhost:8080";
+import { Button } from "@/components/ui/button";
 const fetchRoomStats = async () => {
   const [roomResponse, memberResponse, bookingResponse] = await Promise.all([
     axios.get(`${API_URL}/room`),
@@ -62,47 +65,41 @@ const fetchBookingHistory = async () => {
 };
 const StatCard = ({ title, value, icon: Icon, index }) => (
   <motion.div
-    initial={{ opacity: 0, y: 50 }}
+    initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.6, delay: index * 0.1 }}
-    whileHover={{ scale: 1.03, y: -5 }}
+    transition={{ duration: 0.4, delay: index * 0.1 }}
+    whileHover={{ scale: 1.02 }}
   >
-    <Card className="relative overflow-hidden rounded-2xl border border-white/20 shadow-xl bg-gradient-to-br from-white/90 to-white/70 backdrop-blur-xl p-1">
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5" />
-      <div className="relative p-6">
-        <div className="flex items-center justify-between mb-4">
-          <motion.div
-            initial={{ x: -20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="flex items-center space-x-3"
-          >
-            <motion.div
-              whileHover={{ rotate: 5, scale: 1.1 }}
-              className="p-3 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg"
-            >
-              <Icon className="h-6 w-6 text-white" />
-            </motion.div>
-            <h3 className="text-lg font-medium text-gray-700">{title}</h3>
-          </motion.div>
-        </div>
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="relative"
-        >
-          <div className="text-4xl font-bold bg-gradient-to-br from-blue-600 to-purple-700 bg-clip-text text-transparent">
-            {value}
+    <Card className="rounded-xl bg-white shadow-sm ring-1 ring-black/5">
+      <div className="p-5">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="p-2 rounded-lg bg-primary/10 text-primary">
+            <Icon className="h-5 w-5" />
           </div>
-        </motion.div>
+          <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
+        </div>
+        <div className="text-3xl font-bold text-foreground">{value}</div>
       </div>
-      <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-blue-500/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-24 h-24 bg-purple-500/10 rounded-full blur-3xl" />
     </Card>
   </motion.div>
 );
+const Step = ({ title, desc }) => (
+  <div className="rounded-xl bg-white shadow-sm ring-1 ring-black/5 p-5">
+    <div className="text-sm font-semibold">{title}</div>
+    <div className="text-sm text-muted-foreground mt-1">{desc}</div>
+  </div>
+);
 const HomeSection = () => {
+  const mx = useMotionValue(0);
+  const my = useMotionValue(0);
+  const tiltY = useTransform(mx, (v) => ((v / (typeof window !== 'undefined' ? window.innerWidth : 1)) * 2 - 1) * 6);
+  const tiltX = useTransform(my, (v) => ((v / (typeof window !== 'undefined' ? window.innerHeight : 1)) * 2 - 1) * -6);
+  const glow1X = useTransform(mx, (v) => ((v / (typeof window !== 'undefined' ? window.innerWidth : 1)) * 2 - 1) * 40);
+  const glow1Y = useTransform(my, (v) => ((v / (typeof window !== 'undefined' ? window.innerHeight : 1)) * 2 - 1) * 40);
+  const glow2X = useTransform(mx, (v) => ((v / (typeof window !== 'undefined' ? window.innerWidth : 1)) * 2 - 1) * -30);
+  const glow2Y = useTransform(my, (v) => ((v / (typeof window !== 'undefined' ? window.innerHeight : 1)) * 2 - 1) * 30);
+  const glow3X = useTransform(mx, (v) => ((v / (typeof window !== 'undefined' ? window.innerWidth : 1)) * 2 - 1) * 20);
+  const glow3Y = useTransform(my, (v) => ((v / (typeof window !== 'undefined' ? window.innerHeight : 1)) * 2 - 1) * -20);
   const {
     data: currentStats = {
       totalRooms: 0,
@@ -155,154 +152,149 @@ const HomeSection = () => {
     );
   }
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50/50 to-purple-50/50">
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="relative bg-gradient-to-br from-blue-600 to-purple-700 text-white py-48 px-4 overflow-hidden"
-      >
-        <motion.div
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.3, 0.4, 0.3],
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            repeatType: "reverse",
-          }}
-          className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1605810230434-7631ac76ec81')] bg-cover bg-center opacity-30"
-          style={{ filter: 'saturate(0.8) brightness(0.8)' }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-700/80 to-purple-800/80 backdrop-blur-sm" />
-        
-        <motion.div
-          animate={{
-            scale: [1, 1.3, 1],
-            opacity: [0.2, 0.3, 0.2],
-          }}
-          transition={{
-            duration: 5,
-            repeat: Infinity,
-            repeatType: "reverse",
-          }}
-          className="absolute top-0 right-0 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl"
-        />
-        <motion.div
-          animate={{
-            scale: [1, 1.3, 1],
-            opacity: [0.2, 0.3, 0.2],
-          }}
-          transition={{
-            duration: 7,
-            delay: 1,
-            repeat: Infinity,
-            repeatType: "reverse",
-          }}
-          className="absolute bottom-0 left-0 w-96 h-96 bg-purple-400/20 rounded-full blur-3xl"
-        />
-        <div className="container mx-auto max-w-6xl relative z-10">
-          <motion.div
-            initial={{ y: 50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.8 }}
-            className="space-y-8"
-          >
-            <motion.div
-              initial={{ x: -50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="flex items-center gap-4"
-            >
-              <motion.div
-                animate={{
-                  rotate: [0, 360],
-                  scale: [1, 1.2, 1],
-                }}
-                transition={{
-                  duration: 4,
-                  repeat: Infinity,
-                  repeatType: "reverse",
-                }}
-                className="p-3 rounded-full bg-white/10 backdrop-blur-lg"
-              >
-                <Sparkles className="h-6 w-6 text-blue-200" />
-              </motion.div>
-              <h2 className="text-xl font-medium text-blue-100">ระบบจัดการห้องประชุม</h2>
-            </motion.div>
-            
-            <motion.h1
-              initial={{ x: -50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-              className="text-7xl font-bold tracking-tight"
-            >
-              <span className="bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-transparent">
-                MUT Reserve
-              </span>
-            </motion.h1>
-            
-            <motion.p
-              initial={{ x: -50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-              className="text-3xl text-blue-100/90 max-w-3xl font-light leading-relaxed"
-            >
-              ระบบจองห้องประชุมออนไลน์ มหาวิทยาลัยเทคโนโลยีมหานคร
-            </motion.p>
+    <div className="min-h-screen bg-background relative overflow-hidden" onMouseMove={(e) => { mx.set(e.clientX); my.set(e.clientY); }}>
+      <div className="pointer-events-none absolute inset-0 opacity-70">
+        <motion.div style={{ x: glow1X, y: glow1Y }} className="absolute -top-24 -left-24 w-[40rem] h-[40rem] rounded-full blur-3xl bg-[radial-gradient(ellipse_at_center,rgba(99,102,241,0.25),transparent_60%)]" />
+        <motion.div style={{ x: glow2X, y: glow2Y }} className="absolute top-1/3 -right-24 w-[36rem] h-[36rem] rounded-full blur-3xl bg-[radial-gradient(ellipse_at_center,rgba(147,51,234,0.25),transparent_60%)]" />
+        <motion.div style={{ x: glow3X, y: glow3Y }} className="absolute bottom-0 left-1/4 w-[32rem] h-[32rem] rounded-full blur-3xl bg-[radial-gradient(ellipse_at_center,rgba(14,165,233,0.25),transparent_60%)]" />
+      </div>
+      <div className="container mx-auto max-w-7xl px-6 py-14 relative" style={{ perspective: 1200 }}>
+        <div className="grid md:grid-cols-2 gap-12 items-center">
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} style={{ rotateX: tiltX, rotateY: tiltY }}>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm">
+              <Sparkles className="h-4 w-4" /> ระบบจัดการห้องประชุม
+            </div>
+            <h1 className="mt-4 text-6xl md:text-7xl font-extrabold tracking-tight bg-gradient-to-br from-slate-900 to-slate-700 bg-clip-text text-transparent">
+              MUT Reserve
+            </h1>
+            <p className="mt-4 text-lg text-muted-foreground max-w-xl">
+              ประสบการณ์การจองห้องประชุมที่ลื่นไหล ทันสมัย และออกแบบใหม่ทั้งหมดเพื่อความ Wow และความเป็นมืออาชีพ
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link to="/booking">
+                <Button className="rounded-full h-11 px-6 bg-gradient-to-r from-primary to-purple-600 hover:from-primary hover:to-purple-700 text-white shadow-md">
+                  เริ่มจองทันที
+                </Button>
+              </Link>
+              <Link to="/rooms">
+                <Button variant="outline" className="rounded-full h-11 px-6">ดูห้องทั้งหมด</Button>
+              </Link>
+              <Link to="/bookinghistory">
+                <Button variant="ghost" className="rounded-full h-11 px-6">ประวัติการจอง</Button>
+              </Link>
+            </div>
+          </motion.div>
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} style={{ rotateX: tiltX, rotateY: tiltY }}>
+            <Card className="rounded-2xl shadow-lg ring-1 ring-black/5 overflow-hidden">
+              <div className="p-6">
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="rounded-xl bg-white shadow-sm ring-1 ring-black/5 p-5">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                        <Building2 className="h-5 w-5" />
+                      </div>
+                      <span className="text-sm text-muted-foreground">ห้องประชุมทั้งหมด</span>
+                    </div>
+                    <div className="mt-3 text-3xl font-bold">{currentStats.totalRooms}</div>
+                  </div>
+                  <div className="rounded-xl bg-white shadow-sm ring-1 ring-black/5 p-5">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                        <Users className="h-5 w-5" />
+                      </div>
+                      <span className="text-sm text-muted-foreground">จำนวนสมาชิก</span>
+                    </div>
+                    <div className="mt-3 text-3xl font-bold">{currentStats.totalMembers}</div>
+                  </div>
+                  <div className="rounded-xl bg-white shadow-sm ring-1 ring-black/5 p-5">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                        <Calendar className="h-5 w-5" />
+                      </div>
+                      <span className="text-sm text-muted-foreground">ห้องที่พร้อมใช้</span>
+                    </div>
+                    <div className="mt-3 text-3xl font-bold">{currentStats.availableRooms}</div>
+                  </div>
+                  <div className="rounded-xl bg-white shadow-sm ring-1 ring-black/5 p-5">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                        <Clock className="h-5 w-5" />
+                      </div>
+                      <span className="text-sm text-muted-foreground">อัตราการใช้งานจริง</span>
+                    </div>
+                    <div className="mt-3 text-3xl font-bold">{`${currentStats.utilizationRate}%`}</div>
+                  </div>
+                </div>
+              </div>
+            </Card>
           </motion.div>
         </div>
-      </motion.div>
-      <div className="container mx-auto max-w-6xl px-4 -mt-24 relative z-20">
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-12">
-          <StatCard
-            title="ห้องประชุมทั้งหมด"
-            value={currentStats.totalRooms}
-            icon={Building2}
-            index={0}
-          />
-          <StatCard
-            title="จำนวนสมาชิก"
-            value={currentStats.totalMembers}
-            icon={Users}
-            index={1}
-          />
-          <StatCard
-            title="ห้องที่พร้อมใช้"
-            value={currentStats.availableRooms}
-            icon={Calendar}
-            index={2}
-          />
-          <StatCard
-            title="อัตราการใช้งานจริง"
-            value={`${currentStats.utilizationRate}%`}
-            icon={Clock}
-            index={3}
-          />
+        <div className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <motion.div whileHover={{ y: -4, scale: 1.02 }}>
+            <Card className="rounded-xl bg-white shadow-sm ring-1 ring-black/5 p-5">
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                  <Calendar className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="text-sm font-semibold">จองง่ายในไม่กี่คลิก</div>
+                  <div className="text-sm text-muted-foreground mt-1">เลือกวันที่และเวลาที่ต้องการได้ทันที พร้อมตัวช่วยอัจฉริยะ</div>
+                </div>
+              </div>
+            </Card>
+          </motion.div>
+          <motion.div whileHover={{ y: -4, scale: 1.02 }}>
+            <Card className="rounded-xl bg-white shadow-sm ring-1 ring-black/5 p-5">
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                  <QrCode className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="text-sm font-semibold">QR สำหรับเข้าใช้งาน</div>
+                  <div className="text-sm text-muted-foreground mt-1">สร้างและตรวจสอบ QR ได้แบบเรียลไทม์ สะดวก ปลอดภัย</div>
+                </div>
+              </div>
+            </Card>
+          </motion.div>
+          <motion.div whileHover={{ y: -4, scale: 1.02 }}>
+            <Card className="rounded-xl bg-white shadow-sm ring-1 ring-black/5 p-5">
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                  <BarChart3 className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="text-sm font-semibold">วิเคราะห์การใช้งาน</div>
+                  <div className="text-sm text-muted-foreground mt-1">ดูสถิติและแนวโน้มการจอง เพื่อวางแผนได้อย่างแม่นยำ</div>
+                </div>
+              </div>
+            </Card>
+          </motion.div>
+          <motion.div whileHover={{ y: -4, scale: 1.02 }}>
+            <Card className="rounded-xl bg-white shadow-sm ring-1 ring-black/5 p-5">
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                  <Users className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="text-sm font-semibold">สิทธิ์การเข้าถึง</div>
+                  <div className="text-sm text-muted-foreground mt-1">จัดการสิทธิ์ด้วยระบบที่ยืดหยุ่น เหมาะกับองค์กร</div>
+                </div>
+              </div>
+            </Card>
+          </motion.div>
         </div>
-        <motion.div
-          initial={{ y: 50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.8 }}
-          className="relative overflow-hidden rounded-3xl backdrop-blur-xl bg-white/80 p-8 shadow-xl border border-white/20"
-        >
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5" />
+      <motion.div
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.4, delay: 0.4 }}
+        className="rounded-2xl bg-white p-6 shadow-lg ring-1 ring-black/5 mt-10"
+      >
           <div className="relative">
             <div className="flex items-center gap-4 mb-8">
-              <motion.div
-                animate={{
-                  rotate: [0, 360],
-                }}
-                transition={{
-                  duration: 20,
-                  repeat: Infinity,
-                  ease: "linear",
-                }}
-                className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600"
-              >
-                <BarChart3 className="h-6 w-6 text-white" />
-              </motion.div>
-              <h2 className="text-3xl font-bold bg-gradient-to-br from-blue-600 to-purple-700 bg-clip-text text-transparent">
+              <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                <BarChart3 className="h-5 w-5" />
+              </div>
+              <h2 className="text-xl font-semibold text-foreground">
                 สถิติการจอง
               </h2>
             </div>
@@ -324,11 +316,10 @@ const HomeSection = () => {
                   <YAxis stroke="#64748b" tick={{ fill: "#64748b" }} />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "rgba(255, 255, 255, 0.95)",
-                      backdropFilter: "blur(8px)",
-                      border: "1px solid rgba(255, 255, 255, 0.2)",
-                      borderRadius: "16px",
-                      boxShadow: "0 8px 32px -4px rgb(0 0 0 / 0.1)",
+                      backgroundColor: "white",
+                      border: "1px solid rgba(0,0,0,0.05)",
+                      borderRadius: "12px",
+                      boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)",
                       padding: "12px 16px",
                     }}
                   />
@@ -343,9 +334,22 @@ const HomeSection = () => {
               </ResponsiveContainer>
             </div>
           </div>
-          <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl" />
         </motion.div>
+
+        <div className="mt-14 rounded-2xl bg-white p-6 shadow-lg ring-1 ring-black/5">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 rounded-lg bg-primary/10 text-primary">
+              <Sparkles className="h-5 w-5" />
+            </div>
+            <h2 className="text-xl font-semibold text-foreground">ขั้นตอนการจองแบบใหม่</h2>
+          </div>
+          <div className="grid md:grid-cols-4 gap-4">
+            <Step title="เลือกวันที่" desc="กำหนดวันและเวลาที่ต้องการ" />
+            <Step title="เลือกห้อง" desc="ค้นหาและคัดกรองตามเงื่อนไข" />
+            <Step title="ยืนยัน" desc="ตรวจรายละเอียดและยืนยันการจอง" />
+            <Step title="รับ QR" desc="รับ QR สำหรับเข้าใช้งานทันที" />
+          </div>
+        </div>
       </div>
     </div>
   );

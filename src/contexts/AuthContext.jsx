@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import axios from "axios";
+import { API_URL } from "@/config";
 
 // สร้าง AuthContext เพื่อใช้สำหรับการจัดการสถานะการเข้าสู่ระบบ
 const AuthContext = createContext(null);
@@ -25,12 +26,12 @@ export const AuthProvider = ({ children }) => {
       if (user?.positionNo) { // ตรวจสอบว่ามีข้อมูลผู้ใช้และตำแหน่งหรือไม่
         try {
           // ดึงข้อมูลสิทธิ์การเข้าถึงเมนูจากเซิร์ฟเวอร์
-          const response = await axios.get(`http://localhost:8080/accessmenus`);
-          // กรองข้อมูลสิทธิ์ตามตำแหน่งของผู้ใช้
-          const userPermissions = response.data.filter(
-            (p) => p.PNUM === user.positionNo
-          );
-          // เซ็ตสิทธิ์การเข้าถึงเมนูให้กับผู้ใช้
+          const response = await axios.get(`${API_URL}/accessmenus`);
+          const rows = response.data.map((r) => ({
+            PNUM: r.PNUM ?? r.pnum,
+            MNUM: r.MNUM ?? r.mnum,
+          }));
+          const userPermissions = rows.filter((p) => p.PNUM === user.positionNo);
           setMenuPermissions(userPermissions.map((p) => p.MNUM));
         } catch (error) {
           // หากเกิดข้อผิดพลาดในการโหลดสิทธิ์ แสดงข้อความแจ้งเตือน
@@ -97,11 +98,13 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(true); // เปลี่ยนสถานะการเข้าสู่ระบบเป็นจริง
 
       // ดึงข้อมูลสิทธิ์การเข้าถึงเมนูจากเซิร์ฟเวอร์
-      const response = await axios.get(`http://localhost:8080/accessmenus`);
-      const userPermissions = response.data.filter(
-        (p) => p.PNUM === userData.positionNo
-      );
-      setMenuPermissions(userPermissions.map((p) => p.MNUM)); // เซ็ตสิทธิ์การเข้าถึงเมนู
+      const response = await axios.get(`${API_URL}/accessmenus`);
+      const rows = response.data.map((r) => ({
+        PNUM: r.PNUM ?? r.pnum,
+        MNUM: r.MNUM ?? r.mnum,
+      }));
+      const userPermissions = rows.filter((p) => p.PNUM === userData.positionNo);
+      setMenuPermissions(userPermissions.map((p) => p.MNUM));
 
       // แสดงข้อความต้อนรับ
       toast.success(`ยินดีต้อนรับ ${userData.firstName} ${userData.lastName}`, {
